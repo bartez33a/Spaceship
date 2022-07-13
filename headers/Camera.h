@@ -13,15 +13,16 @@ class Camera
 	glm::vec3 front; // target of camera is camera's front!
 	glm::vec3 up_vector; //global coordinate system's up vector
 	glm::mat4 view_matrix;
-	float deltaTime;
 	
+	// angles
 	float pitch;
 	float yaw;
 	float roll;
 
+	//for jumping
 	bool key_space_lastState;
 	bool jump;
-	float jumpTime;
+	double jumpTime;
 
 public:
 	//constructor 
@@ -30,11 +31,12 @@ public:
 	~Camera();
 	//function that records input
 	void Input(GLFWwindow *window, float deltaTime);
-	//returns viewMatrix
+	// mouse input
 	void mouseInput(float xoffset, float yoffset);
+	//returns viewMatrix
 	glm::mat4 get_viewMatrix() const;
-
-	void updateCameraVectors();
+	// update view matrix camera
+	void updateCameraMatrix();
 
 };
 

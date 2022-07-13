@@ -4,6 +4,7 @@
 
 Camera::Camera(glm::vec3 pos, glm::vec3 front_, glm::vec3 up_vec): position(pos), front(front_), up_vector(up_vec)
 {
+	// initialize camera matrix and yaw angle
 	view_matrix = glm::lookAt(position, position + front, up_vector);
 	yaw = -90.0f;
 }
@@ -38,15 +39,13 @@ void Camera::Input(GLFWwindow * window, float deltaTime)
 		position += glm::normalize(glm::cross(up_vector, front)) * cameraSpeed;
 	}
 
+	//jump
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		if (!key_space_lastState)
 		{
-			//positive edge!
-			//hop
 			jump = true;
 			jumpTime = glfwGetTime();
-			std::cout << "JUMP!\n";
 		}
 		key_space_lastState = true;
 	}
@@ -55,16 +54,7 @@ void Camera::Input(GLFWwindow * window, float deltaTime)
 		key_space_lastState = false;
 	}
 
-	if (jump)
-	{
-		if (glfwGetTime() - jumpTime > 0.2)
-		{
-			jump = false;
-			view_matrix = glm::translate(view_matrix, glm::vec3(0.0f, 1.0f, 0.0f));
-		}
-	}
-
-	updateCameraVectors();
+	updateCameraMatrix();
 }
 
 float last_yaw;
@@ -93,7 +83,7 @@ void Camera::mouseInput(float xoffset, float yoffset)
 	last_yaw = yaw;
 	last_pitch = pitch;
 
-	updateCameraVectors();
+	updateCameraMatrix();
 }
  
 
@@ -104,21 +94,18 @@ glm::mat4 Camera::get_viewMatrix() const
 
 
 
-void Camera::updateCameraVectors()
+void Camera::updateCameraMatrix()
 {
-	//muismy ustawic tylko wetkor kierunku (zmieniamy front kamery)
-	//glm::vec3 direction;
-	//direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	//direction.y = sin(glm::radians(pitch));	
-	//direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-	
-	//front = glm::normalize(direction);
-
 	view_matrix = glm::lookAt(position, position + front, up_vector);
 	
-	
 	if (jump) {
+		//translate viewMatrix -> every call of this function viewMatrix is updated so we have to translate this matrix
+		//every call of this function!
 		view_matrix = glm::translate(view_matrix, glm::vec3(0.0f, -1.0f, 0.0f));
+
+		if (glfwGetTime() - jumpTime > 0.2) // 200 ms
+		{
+			jump = false;
+		}
 	}
 }
