@@ -25,7 +25,7 @@ class Camera
 	double jumpTime;
 
 public:
-	//constructor 
+	//constructor
 	Camera(glm::vec3 pos, glm::vec3 dir, glm::vec3 up_vec);
 	//destructor
 	~Camera();
@@ -37,6 +37,8 @@ public:
 	glm::mat4 get_viewMatrix() const;
 	// update view matrix camera
 	void updateCameraMatrix();
+	glm::vec3 getCamPos() const;
+	glm::vec3 getCamFront() const;
 
 };
 

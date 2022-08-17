@@ -44,7 +44,7 @@ void Camera::Input(GLFWwindow * window, float deltaTime)
 	{
 		if (!key_space_lastState)
 		{
-			jump = true;
+			//jump = true;
 			jumpTime = glfwGetTime();
 		}
 		key_space_lastState = true;
@@ -57,42 +57,38 @@ void Camera::Input(GLFWwindow * window, float deltaTime)
 	updateCameraMatrix();
 }
 
-float last_yaw;
-float last_pitch;
-bool first = false;
 
 void Camera::mouseInput(float xoffset, float yoffset)
 {
-	yaw += xoffset;
-	pitch += yoffset;
+	// +xoffset -> right
+	// +yoffset -> up
+	yaw += xoffset; //mouse moved left <--> right
+	pitch += yoffset; //mouse moved up <--> down
 
+	//std::cout << "xoffset: " << xoffset << " yoffset = " << yoffset << '\n';
+
+	// bounds
 	if (pitch > 89.0f)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
 		pitch = -89.0f;
+	
+	front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+	front.y = sin(glm::radians(pitch));
+	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
 
-	if (!first)
-	{
-		first = true;
-	}
-	else
-	{
-		front = glm::rotate(front, glm::radians(pitch - last_pitch), glm::vec3(1.0f, 0.0f, 0.0f));
-		front = glm::rotate(front, glm::radians(yaw - last_yaw), glm::vec3(0.0f, -1.0f, 0.0f));
-	}
-	last_yaw = yaw;
-	last_pitch = pitch;
+	//std::cout << "Front: " << front.x << ",  " << front.y << ", " << front.z << "\n";
+	//std::cout << "yaw = " << yaw << " pitch = " << pitch << "\n";
 
+	front = glm::normalize(front);
+	
 	updateCameraMatrix();
 }
  
-
 glm::mat4 Camera::get_viewMatrix() const
 {
 	return view_matrix;
 }
-
-
 
 void Camera::updateCameraMatrix()
 {
@@ -108,4 +104,14 @@ void Camera::updateCameraMatrix()
 			jump = false;
 		}
 	}
+}
+
+glm::vec3 Camera::getCamPos() const
+{
+	return position;
+}
+
+glm::vec3 Camera::getCamFront() const
+{
+	return front;
 }

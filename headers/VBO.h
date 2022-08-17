@@ -3,6 +3,7 @@
 #include <glad\glad.h>
 #include <iostream>
 
+
 class VBO
 {
 	GLuint ID;

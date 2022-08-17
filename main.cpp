@@ -1,3 +1,10 @@
+// TODO
+// - create shader for rockets
+// - bound rockets number, bound time between two consecutive shoots
+// - fuel for spaceship
+// - 
+
+
 #include <iostream>
 #include <string>
 #include <glad\glad.h> // glad before glfw!
@@ -5,15 +12,21 @@
 #include <glm\glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 //my includes
 #include "headers/Shader.h"
 #include "headers/VAO.h"
 #include "headers/VBO.h"
-#include "headers/Rectangle.h"
 #include "headers/Cube.h"
 #include "headers/stb_image.h"
 #include "headers/Camera.h"
+#include "headers/meteor.h"
+#include "headers/Rocket.h"
+#include "headers/Manager.h"
+#include "headers/Sphere.h"
+#include "headers/Texture.h"
+#include "headers/Point.h"
 
 // my functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -30,12 +43,14 @@ const int height = 600;
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-// create FPS camera object 
-// arguments: positon_of_camera, front_of_camera, up_vector
-Camera cam1(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+//vecotr of rockets
+Shader *shader_ptr;
+Manager manager;
+std::list<Sphere> sphere_list;
 
 int main()
 {
+
 	std::cout << "Welcome to Spacecraft game!\n";
 
 	//initialize glfw
@@ -44,6 +59,7 @@ int main()
 	//create window using glfw
 	GLFWwindow* window = glfwCreateWindow(width, height, "Spacecraft", NULL, NULL);
 
+	// if window wasnt created
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -65,62 +81,113 @@ int main()
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //hide mouse cursor
 	glfwSetCursorPosCallback(window, mouseInput); //set mouse callback function
 
+	//create sahders
 	//create shader programs
 	Shader shader("shaders/shader.vs", "shaders/shader.fs"); //shader without texture
-	Shader shader_tex("shaders/shader_tex.vs", "shaders/shader_tex.fs"); //shader with texture
+	shader_ptr = &shader;
+
+	//shader for meteors
+	Shader meteor_shader("shaders/shader_meteor_tex.vs", "shaders/shader_meteor_tex.fs");
+
+	//shader for background meteors
+	Shader background_meteors_shader("shaders/shader_background_meteor.vs","shaders/shader_background_meteor.fs");
 
 	//textures
-	//anti load image upside-down
-	stbi_set_flip_vertically_on_load(true);
+	Texture t1("textures/magma.png", GL_TEXTURE0);
+	Texture t2("textures/meteor.png", GL_TEXTURE1);
+	Texture t3("textures/meteor2.png", GL_TEXTURE2);
 
-	//no textures right now
+	manager.setMeteorsTexNo(3);
+
+	//use textures
+	//use program to set uniforms for textures
+	meteor_shader.use();
+	//0 ->  glActiveTexture(GL_TEXTURE0); // activate texture unit 0
+	glUniform1i(glGetUniformLocation(meteor_shader.get_ID(), "texture0"), 0); // manually
+	glUniform1i(glGetUniformLocation(meteor_shader.get_ID(), "texture1"), 1); // manually
+	glUniform1i(glGetUniformLocation(meteor_shader.get_ID(), "texture2"), 2); // manually
 
 	// view martix for camera
 	glm::mat4 view = glm::mat4(1.0f);	
 	//projection matrix
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-	// create objects
-	Cube c1(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
 
 	//enable depth testing for 3d drawing
 	glEnable(GL_DEPTH_TEST);
 
+	double timer_meteor;
+	timer_meteor = glfwGetTime();
+	srand((unsigned int)time(NULL));
+
+
+	//background 
+	manager.createBackground(&background_meteors_shader);
+
+	//bind textures before rendering loop -if you dont bind texture, shape will be black.
+	t1.bindTexture();
+	t2.bindTexture();
+	t3.bindTexture();
+
 	//rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
-		//calculate time difference between 2 consecutive frames
-		float currentFrame = glfwGetTime();
+		//calculate time difference between 2 subsequent frames
+		double currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 	
 		//clear buffers
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//process inpout function e.g. exit application
 		processInput(window);
-		
-		//use camera
+
 		//use camera input and get viewMatrix
-		cam1.Input(window, deltaTime);
-		view = cam1.get_viewMatrix();
+		//cam1.Input(window, deltaTime);
+		//view = cam1.get_viewMatrix();
+
+		view = manager.getViewMatrix();
 
 		//shader for cubes without texture
 		shader.use();
 		glm::mat4 mm = glm::mat4(1.0f);
-
 		shader.setUniformMatrix(shader.getModelMatrixLocation(), mm);
 		shader.setUniformMatrix(shader.getViewMatrixLocation(), view); //update camera
 		shader.setUniformMatrix(shader.getProjectionMatrixLocation(), projection);
-		c1.draw();
-				
+		
+		//update shader's matices
+		// shader for meteors
+		meteor_shader.use();
+		meteor_shader.updateMatrices(mm, view, projection);
+	
+		// shader for background meteors
+		background_meteors_shader.use();
+		background_meteors_shader.updateMatrices(mm, view, projection);
+
+		// create meteors
+		if ((glfwGetTime() - timer_meteor) > 1.0)
+		{
+			timer_meteor = glfwGetTime();
+			manager.createMeteors(&meteor_shader);
+		}
+
+
+		if (!manager.play(window, deltaTime))
+		{
+			//gameOver
+			glfwSetWindowShouldClose(window, true);
+		}
+
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} //end of render loop
 
 	//terminate glfw
 	glfwTerminate();
+
+	getchar();
 
 	return EXIT_SUCCESS;
 }
@@ -136,30 +203,46 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // porcess window inputs
 void processInput(GLFWwindow *window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+	static bool space_pushed = false;
 
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+		
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		if (!space_pushed) //positive edge
+		{
+			manager.createRocket(shader_ptr);
+		}
+		space_pushed = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+	{
+		space_pushed = false;
+	}
 }
 
 //mouse input callback function
 void mouseInput(GLFWwindow* window, double xpos, double ypos)
 {
 	static bool firstMouse = false; // to initialize mouse_lastXY positions
-	static float mouse_lastX, mouse_lastY;
+	static double mouse_lastX, mouse_lastY;
 	
 	// initialize last positions at start
-	if (firstMouse) // initially set to true
+	if (!firstMouse) // initially set to true
 	{
 		mouse_lastX = xpos;
 		mouse_lastY = ypos;
-		firstMouse = false;
+		firstMouse = true;
 	}
 
 
 	//mouse xpos -> positive to the right
 	//mouse ypos -> positive to the bottom!
-	float xoffset = xpos - mouse_lastX;
-	float yoffset = mouse_lastY - ypos; // reversed: y ranges bottom to top
+	double xoffset = xpos - mouse_lastX;
+	double yoffset = mouse_lastY - ypos; // reversed: y ranges bottom to top
 	mouse_lastX = xpos;
 	mouse_lastY = ypos;
 
@@ -168,7 +251,7 @@ void mouseInput(GLFWwindow* window, double xpos, double ypos)
 	yoffset *= sensitivity;
 
 	//camera mouse input
-	cam1.mouseInput(xoffset, yoffset);
+	manager.mouseInput(xoffset, yoffset);
 }
 
 void initialize_glfw()

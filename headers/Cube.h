@@ -3,19 +3,27 @@
 #include "../headers/VAO.h"
 #include "../headers/VBO.h"
 
-class Cube
+#include "Object.h"
+#include "Shape.h"
+#include <iostream>
+
+class Cube : public Shape
 {
-	float x_, y_, z_;
+protected:
+	//cube has initial position from Class Shape -> float x_, y_, z_
+	// modelMatrix to transform cube vertices
+	glm::mat4 modelMatrix; //model matrix to move body
+	// actual position of cube
+	glm::vec3 position; //actual position of body
 	float w_, h_, l_;
-	float R_, G_, B_;
-	VAO vao;
-	VBO vbo;
 public:
-	Cube(float x, float y, float z, float w, float h, float l, float R=1.0f, float G = 1.0f, float B = 1.0f);
-	Cube(float x, float y, float z, float w, float h, float l, int rep, float R = 1.0f, float G = 1.0f, float B = 1.0f);
+	Cube(Shader *shader, float x, float y, float z, float w, float h, float l, float R, float G, float B );
+	Cube(Shader *shader, float x, float y, float z, float w, float h, float l, int rep, float R, float G, float B);
 	~Cube();
 	void draw();
-
-
+	glm::vec3 getPosition() const;
+	glm::vec3 getDimensions() const;
+	friend std::ostream& operator << (std::ostream& str, Cube const &c);
+	glm::mat4 getModelMatrix() const;
 };
 

@@ -25,6 +25,8 @@ void VAO::UnbindBuffer()
 	glBindVertexArray(0);
 }
 
+//stride -> only number of float variables, there is multiplication by sizeof(float)
+//offset -> only number of float variables, ...
 void VAO::SetAttribPointer(VBO &vbo, int location, int attribSize, int stride, int offset)
 {
 	//Bind VBO to set attributes

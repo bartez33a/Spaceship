@@ -132,9 +132,18 @@
     <ClCompile Include="src\Cube.cpp" />
     <ClCompile Include="src\EBO.cpp" />
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\Manager.cpp" />
+    <ClCompile Include="src\meteor.cpp" />
+    <ClCompile Include="src\Object.cpp" />
+    <ClCompile Include="src\Point.cpp" />
     <ClCompile Include="src\Rectangle.cpp" />
+    <ClCompile Include="src\Rocket.cpp" />
     <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Shape.cpp" />
+    <ClCompile Include="src\Spaceship.cpp" />
+    <ClCompile Include="src\Sphere.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\VAO.cpp" />
     <ClCompile Include="src\VBO.cpp" />
   </ItemGroup>
@@ -142,9 +151,18 @@
     <ClInclude Include="headers\Camera.h" />
     <ClInclude Include="headers\Cube.h" />
     <ClInclude Include="headers\EBO.h" />
+    <ClInclude Include="headers\Manager.h" />
+    <ClInclude Include="headers\meteor.h" />
+    <ClInclude Include="headers\Object.h" />
+    <ClInclude Include="headers\Point.h" />
     <ClInclude Include="headers\Rectangle.h" />
+    <ClInclude Include="headers\Rocket.h" />
     <ClInclude Include="headers\Shader.h" />
+    <ClInclude Include="headers\Shape.h" />
+    <ClInclude Include="headers\Spaceship.h" />
+    <ClInclude Include="headers\Sphere.h" />
     <ClInclude Include="headers\stb_image.h" />
+    <ClInclude Include="headers\Texture.h" />
     <ClInclude Include="headers\VAO.h" />
     <ClInclude Include="headers\VBO.h" />
   </ItemGroup>

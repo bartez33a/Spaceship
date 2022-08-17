@@ -122,9 +122,9 @@ Shader::Shader(const char* vs_file, const char* fs_file)
 	projectionLoc = glGetUniformLocation(ID, "projection");
 
 	//initialize uniform matrix
-	model = glm::mat4(1.0f);
-	view = glm::mat4(1.0f);
-	projection = glm::mat4(1.0f);
+	m_model = glm::mat4(1.0f);
+	m_view = glm::mat4(1.0f);
+	m_projection = glm::mat4(1.0f);
 }
 
 
@@ -261,9 +261,12 @@ void Shader::setUniformMatrix(int location, glm::mat4 matrix)
 
 void Shader::setUniformfloat(std::string name, float value)
 {
-
 	glUniform1f(glGetUniformLocation(ID, name.c_str()), value); // manually
+}
 
+void Shader::setUniformInt(std::string name, int value)
+{
+	glUniform1i(glGetUniformLocation(ID, name.c_str()), value); // manually
 }
 
 int Shader::getModelMatrixLocation() const
@@ -280,3 +283,14 @@ int Shader::getProjectionMatrixLocation() const
 {
 	return projectionLoc;
 }
+
+void Shader::updateMatrices(glm::mat4 model, glm::mat4 view, glm::mat4 projection)
+{
+	m_model = model;
+	m_view = view;
+	m_projection = projection;
+	setUniformMatrix(getModelMatrixLocation(), m_model);
+	setUniformMatrix(getViewMatrixLocation(), m_view);
+	setUniformMatrix(getProjectionMatrixLocation(), m_projection);
+}
+
