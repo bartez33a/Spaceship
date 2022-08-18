@@ -11,6 +11,9 @@ Texture::Texture(const char* file, int tU) : m_tU{ tU }
 
 	unsigned char *data = stbi_load(file, &width, &height, &channels, 0);
 
+	std::cout << "texture file: " << file << " texture unit: " << tU << '\n';
+	std::cout << "width = " << width << " height = " << height << " no of channels: " << channels << "\n\n";
+
 	//bind this texture
 	bindTexture();
 
@@ -31,7 +34,7 @@ Texture::Texture(const char* file, int tU) : m_tU{ tU }
 		}
 		else if (channels == 4) //RGBA
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 		}
 

@@ -1,5 +1,6 @@
 #include "..\headers\Manager.h"
 
+// TODO -> change to lambda
 void print_position_cubes(const Cube& c, std::string name) {
 	glm::vec3 pos = c.getPosition();
 	glm::vec3 dim = c.getDimensions();
@@ -14,6 +15,7 @@ void print_position_cubes(const Cube& c, std::string name) {
 	std::cout << name << " Position: (" << x1 << ",\t" << y1 << ",\t" << z1 << ") dim: (" << w1 << ",\t" << h1 << ",\t" << l1 << ")\n";
 }
 
+// TODO -> change to lambda
 void print_position_sphere(const Sphere& s, std::string name) {
 	glm::vec3 pos = s.getPosition();
 	float x1 = pos.x;
@@ -25,9 +27,39 @@ void print_position_sphere(const Sphere& s, std::string name) {
 	std::cout << name << " Position: (" << x1 << ",\t" << y1 << ",\t" << z1 << ") radius: (" << r1 << ")\n";
 }
 
-Manager::Manager()
+Manager::Manager() : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/base/base_shader_tex.fs" },
+m_base_texture{"textures/base/base.jpg", GL_TEXTURE0 },
+m_base{&m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1 },
+//shader for meteors
+m_meteor_shader{ "shaders/shader_meteor_tex.vs", "shaders/shader_meteor_tex.fs" },
+m_background_meteors_shader{ "shaders/shader_background_meteor.vs", "shaders/shader_background_meteor.fs" },
+m_meteor_shader_tex1{ "textures/magma.png", GL_TEXTURE0},
+m_meteor_shader_tex2{ "textures/meteor.png", GL_TEXTURE1},
+m_meteor_shader_tex3{"textures/meteor2.png", GL_TEXTURE2}
 {
 	srand(time(NULL));
+
+	//draw base
+	m_base_shader.use();
+	glm::mat4 mm = glm::mat4(1.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
+	m_base_shader.setUniformMatrix(m_base_shader.getModelMatrixLocation(), mm);
+	m_base_shader.setUniformMatrix(m_base_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix()); //update camera
+	m_base_shader.setUniformMatrix(m_base_shader.getProjectionMatrixLocation(), projection);
+	m_base_shader.setUniformInt("texture0", 0);
+	// texture for base
+
+	//meteors
+	m_meteor_shader.use();
+	m_meteor_shader.setUniformMatrix(m_meteor_shader.getModelMatrixLocation(), mm);
+	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix()); //update camera
+	m_meteor_shader.setUniformMatrix(m_meteor_shader.getProjectionMatrixLocation(), projection);
+	//0 ->  glActiveTexture(GL_TEXTURE0); // activate texture unit 0
+	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture0"), 0); // manually
+	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture1"), 1); // manually
+	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture2"), 2); // manually
+	setMeteorsTexNo(3);
+	
 
 	//player
 	m_score = 0;
@@ -157,7 +189,7 @@ bool Manager::checkCollisionSphere(const Sphere & s1, const Sphere & s2)
 
 unsigned int Manager::m_meteors_ctr = 0;
 
-void Manager::createMeteors(Shader *shader)
+void Manager::createMeteors()
 {
 	if (m_meteors.size() < m_meteorsMaxNo)
 	{
@@ -183,7 +215,7 @@ void Manager::createMeteors(Shader *shader)
 				pos_y = float((rand() % 10000 - 5000)) / 1000.0f / 2.5f;
 				pos_z = float((rand() % 10000 - 5000)) / 1000.0f / 5.0f;
 				radius = float((rand() % 1000)) / 1000.0f + .1f;
-				Sphere m2(shader, pos_x, pos_y, pos_z, radius);
+				Sphere m2(&m_meteor_shader, pos_x, pos_y, pos_z, radius);
 
 				for (auto& m : m_meteors)
 				{
@@ -198,12 +230,12 @@ void Manager::createMeteors(Shader *shader)
 
 			} while (!valid_pos);
 		}
-		m_meteors.emplace_back(shader, pos_x, pos_y, pos_z, radius, 1, ((m_meteors_ctr++) % m_meteorTexNo));
+		m_meteors.emplace_back(&m_meteor_shader, pos_x, pos_y, pos_z, radius, 1, ((m_meteors_ctr++) % m_meteorTexNo));
 	}
 }
 
 //create background -> add Point to list of background points
-void Manager::createBackground(Shader *shader)
+void Manager::createBackground()
 {
 	// distance from origin
 	float distance = 100.0f;
@@ -229,7 +261,7 @@ void Manager::createBackground(Shader *shader)
 			sectorAngle = j * sectorStep; // starting from 0 to 2pi
 			pos_x = xy * cos(sectorAngle);
 			pos_y = xy * sin(sectorAngle);
-			m_background_meteors.emplace_back(shader, pos_x, pos_y, pos_z, 1.0f);
+			m_background_meteors.emplace_back(&m_background_meteors_shader, pos_x, pos_y, pos_z, 1.0f);
 		} //for sectorCount
 	} //for stackCount
 } //createBackground()
@@ -318,15 +350,28 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 {
 	static glm::vec3 spaceship_pos = m_spaceship.getCamPos();
 	m_loadingAmmoTimer += deltaTime;
-	m_spaceship.Input(window, deltaTime);
+
+	if(m_spaceship.getFuel() > 0)
+	{
+		m_spaceship.Input(window, deltaTime);
+	}
 
 	if (m_spaceship.getCamPos() != spaceship_pos)
 	{
-		spaceship_pos = m_spaceship.getCamPos();
-		m_spaceship.useFuel(0.1);
+		if (m_spaceship.getFuel() > 0)
+		{
+			spaceship_pos = m_spaceship.getCamPos();
+			m_spaceship.useFuel(0.1);
+		}
+		std::cout << "Spaceship fuel: " << m_spaceship.getFuel() << '\n';
 	}
 
-	std::cout << "Spaceship fuel: " << m_spaceship.getFuel() << '\n';
+	
+
+	//TODO -> sprawdzic dlaczego jesli rysujemy cos przed rysowaniem tla to jest problem i tlo sie
+	// nie rysuje. moze nie ma wywolania shader.use w rysowaniu background_meteors albo gdzies indziej??
+	// SPRAWDZIC!!!
+
 
 	//draw background meteors
 	for (auto &b : m_background_meteors)
@@ -334,7 +379,27 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		b.draw();
 	}
 
+	m_base_shader.use();
+	//different shader with different textures? you have to bind those textures
+	m_base_texture.bindTexture();
+	glm::mat4 mm = glm::mat4(1.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
+
+	//update shaders matrices
+	m_base_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+	m_background_meteors_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+	m_meteor_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+
+	m_base.draw();
+
+
+
 	// draw meteors
+
+	//you have to bind all textures otherwise shape will be black
+	m_meteor_shader_tex1.bindTexture();
+	m_meteor_shader_tex2.bindTexture();
+	m_meteor_shader_tex3.bindTexture();
 	for (auto &m : m_meteors)
 	{
 		m.move(deltaTime);

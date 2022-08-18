@@ -18,9 +18,10 @@ protected:
 	float w_, h_, l_;
 public:
 	Cube(Shader *shader, float x, float y, float z, float w, float h, float l, float R, float G, float B );
-	Cube(Shader *shader, float x, float y, float z, float w, float h, float l, int rep, float R, float G, float B);
+	Cube(Shader *shader, float x, float y, float z, float w, float h, float l, int rep, float R = 1.0f, float G = 1.0f, float B = 1.0f);
 	~Cube();
 	void draw();
+	void draw(glm::mat4 model, glm::mat4 view, glm::mat4 projection);
 	glm::vec3 getPosition() const;
 	glm::vec3 getDimensions() const;
 	friend std::ostream& operator << (std::ostream& str, Cube const &c);

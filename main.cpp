@@ -45,7 +45,7 @@ float lastFrame = 0.0f; // Time of last frame
 
 //vecotr of rockets
 Shader *shader_ptr;
-Manager manager;
+Manager *manager_ptr;
 std::list<Sphere> sphere_list;
 
 int main()
@@ -81,31 +81,16 @@ int main()
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //hide mouse cursor
 	glfwSetCursorPosCallback(window, mouseInput); //set mouse callback function
 
+	//game manager
+	Manager manager;
+	manager_ptr = &manager;
+
 	//create sahders
 	//create shader programs
 	Shader shader("shaders/shader.vs", "shaders/shader.fs"); //shader without texture
 	shader_ptr = &shader;
 
-	//shader for meteors
-	Shader meteor_shader("shaders/shader_meteor_tex.vs", "shaders/shader_meteor_tex.fs");
 
-	//shader for background meteors
-	Shader background_meteors_shader("shaders/shader_background_meteor.vs","shaders/shader_background_meteor.fs");
-
-	//textures
-	Texture t1("textures/magma.png", GL_TEXTURE0);
-	Texture t2("textures/meteor.png", GL_TEXTURE1);
-	Texture t3("textures/meteor2.png", GL_TEXTURE2);
-
-	manager.setMeteorsTexNo(3);
-
-	//use textures
-	//use program to set uniforms for textures
-	meteor_shader.use();
-	//0 ->  glActiveTexture(GL_TEXTURE0); // activate texture unit 0
-	glUniform1i(glGetUniformLocation(meteor_shader.get_ID(), "texture0"), 0); // manually
-	glUniform1i(glGetUniformLocation(meteor_shader.get_ID(), "texture1"), 1); // manually
-	glUniform1i(glGetUniformLocation(meteor_shader.get_ID(), "texture2"), 2); // manually
 
 	// view martix for camera
 	glm::mat4 view = glm::mat4(1.0f);	
@@ -121,12 +106,8 @@ int main()
 
 
 	//background 
-	manager.createBackground(&background_meteors_shader);
+	manager.createBackground();
 
-	//bind textures before rendering loop -if you dont bind texture, shape will be black.
-	t1.bindTexture();
-	t2.bindTexture();
-	t3.bindTexture();
 
 	//rendering loop
 	while (!glfwWindowShouldClose(window))
@@ -158,18 +139,18 @@ int main()
 		
 		//update shader's matices
 		// shader for meteors
-		meteor_shader.use();
-		meteor_shader.updateMatrices(mm, view, projection);
+		//meteor_shader.use();
+		//meteor_shader.updateMatrices(mm, view, projection);
 	
-		// shader for background meteors
-		background_meteors_shader.use();
-		background_meteors_shader.updateMatrices(mm, view, projection);
+		//// shader for background meteors
+		//background_meteors_shader.use();
+		//background_meteors_shader.updateMatrices(mm, view, projection);
 
 		// create meteors
 		if ((glfwGetTime() - timer_meteor) > 1.0)
 		{
 			timer_meteor = glfwGetTime();
-			manager.createMeteors(&meteor_shader);
+			manager.createMeteors();
 		}
 
 
@@ -214,7 +195,7 @@ void processInput(GLFWwindow *window)
 	{
 		if (!space_pushed) //positive edge
 		{
-			manager.createRocket(shader_ptr);
+			manager_ptr->createRocket(shader_ptr);
 		}
 		space_pushed = true;
 	}
@@ -251,7 +232,7 @@ void mouseInput(GLFWwindow* window, double xpos, double ypos)
 	yoffset *= sensitivity;
 
 	//camera mouse input
-	manager.mouseInput(xoffset, yoffset);
+	manager_ptr->mouseInput(xoffset, yoffset);
 }
 
 void initialize_glfw()

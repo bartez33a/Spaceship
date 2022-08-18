@@ -154,11 +154,23 @@ void Cube::draw()
 	vao.BindBuffer();
 	shader_->use();
 	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix);
-	/*
-	std::cout << "Cube no. " << id_no << "  x = " <<  modelMatrix[3][0] + x_ << " y = " << modelMatrix[3][1] + y_ <<
-		" z = " << (modelMatrix[3][2] + z_)  <<
-		"Color: (" << R_ << ", " << G_ << ", " << B_ <<")\n";
-	*/
+
+	//draw object -> bind buffer and draw all vertices
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	vao.UnbindBuffer();
+}
+
+//draw object, matrices needed
+void Cube::draw(glm::mat4 model, glm::mat4 view, glm::mat4 projection)
+{
+	vao.BindBuffer();
+	shader_->use();
+
+	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), model);
+	shader_->setUniformMatrix(shader_->getViewMatrixLocation(), view);
+	shader_->setUniformMatrix(shader_->getProjectionMatrixLocation(),projection );
+
+
 	//draw object -> bind buffer and draw all vertices
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	vao.UnbindBuffer();

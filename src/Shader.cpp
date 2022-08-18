@@ -3,17 +3,16 @@
 
 Shader::Shader()
 {
-
+	
 }
 
 //read shaders code from files vs_file and fs_file and try to create shader program.
 Shader::Shader(const char* vs_file, const char* fs_file)
 {
-	std::fstream VS_filestream(vs_file, std::ios::in); //vertex shader file
-	std::fstream FS_filestream(fs_file, std::ios::in); //fragment shader file
-	std::string vs_code; //vertex shader file content
-	std::string fs_code; //fragment shader file content
-
+	std::fstream VS_filestream(vs_file, std::ios::in); // vertex shader file
+	std::fstream FS_filestream(fs_file, std::ios::in); // fragment shader file
+	std::string vs_code; // vertex shader file content
+	std::string fs_code; // fragment shader file content
 
 	// Read Vertex shader code
 	if (VS_filestream.is_open())
@@ -286,6 +285,7 @@ int Shader::getProjectionMatrixLocation() const
 
 void Shader::updateMatrices(glm::mat4 model, glm::mat4 view, glm::mat4 projection)
 {
+	use();
 	m_model = model;
 	m_view = view;
 	m_projection = projection;
