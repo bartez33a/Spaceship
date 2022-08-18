@@ -255,6 +255,7 @@ void Shader::createShader(const char* vs_file, const char* fs_file)
 
 void Shader::setUniformMatrix(int location, glm::mat4 matrix)
 {
+	use();
 	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
@@ -292,5 +293,11 @@ void Shader::updateMatrices(glm::mat4 model, glm::mat4 view, glm::mat4 projectio
 	setUniformMatrix(getModelMatrixLocation(), m_model);
 	setUniformMatrix(getViewMatrixLocation(), m_view);
 	setUniformMatrix(getProjectionMatrixLocation(), m_projection);
+}
+
+void Shader::rotateObjects(float angle)
+{
+	m_model = glm::rotate(m_model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+	setUniformMatrix(getModelMatrixLocation(), m_model);
 }
 

@@ -2,7 +2,7 @@
 
 int Rocket::counter = 0;
 
-Rocket::Rocket(Shader *s, float x, float y, float z, glm::vec3 dir) : Cube(s, x,y,z, 0.1, 0.1, 0.1, 1.0, 0.0, 0.0),  direction{dir}
+Rocket::Rocket(Shader *s, float x, float y, float z, glm::vec3 dir) : Cube{ s, x,y,z, 0.1f, 0.1f, 0.1f, 1.0f, 0.0f, 0.0f }, direction{ dir }
 {
 	counter++;
 	id_no = counter;
@@ -49,8 +49,6 @@ void Rocket::move(double deltaTime)
 	position += direction*speed_factor;
 
 	modelMatrix = glm::translate(modelMatrix, direction*speed_factor);
-
-	//std::cout << "rocket no. " << id_no << " position (" << position.x << ", " << position.y << ", " << position.z << ")\n";
 }
 
 Rocket & Rocket::operator=(const Rocket & rocket) 

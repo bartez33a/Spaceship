@@ -33,5 +33,6 @@ public:
 	int getViewMatrixLocation() const;
 	int getProjectionMatrixLocation() const;
 	void updateMatrices(glm::mat4 model, glm::mat4 view, glm::mat4 projection);
+	void rotateObjects(float angle);
 };
 

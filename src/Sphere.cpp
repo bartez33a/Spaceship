@@ -120,7 +120,7 @@ Sphere::Sphere(Shader *shader, float x, float y, float z, float r, int rep, int 
 			"radius = " << r << '\n';
 	};
 
-	print_sphere();
+	//print_sphere();
 	
 	init_pos = position;
 
@@ -245,7 +245,7 @@ void Sphere::draw_tex()
 	shader_->use();
 	//select texture
 	shader_->setUniformInt("tex", m_tex_no);
-	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix);
+	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix); //translate object
 	vao.BindBuffer();
 	//std::cout << "Draw meteor " << id_no << " m_tex_no = " << m_tex_no << '\n';
 	glDrawElements(GL_TRIANGLES, indices_number, GL_UNSIGNED_INT, 0);

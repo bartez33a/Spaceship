@@ -29,37 +29,40 @@ void print_position_sphere(const Sphere& s, std::string name) {
 
 Manager::Manager() : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/base/base_shader_tex.fs" },
 m_base_texture{"textures/base/base.jpg", GL_TEXTURE0 },
-m_base{&m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1 },
+m_base{&m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1, 1.0f, 1.0f, 0.0f },
 //shader for meteors
 m_meteor_shader{ "shaders/shader_meteor_tex.vs", "shaders/shader_meteor_tex.fs" },
 m_background_meteors_shader{ "shaders/shader_background_meteor.vs", "shaders/shader_background_meteor.fs" },
 m_meteor_shader_tex1{ "textures/magma.png", GL_TEXTURE0},
 m_meteor_shader_tex2{ "textures/meteor.png", GL_TEXTURE1},
-m_meteor_shader_tex3{"textures/meteor2.png", GL_TEXTURE2}
+m_meteor_shader_tex3{"textures/meteor2.png", GL_TEXTURE2},
+m_rocket_shader("shaders/shader.vs", "shaders/shader.fs") //shader without texture
 {
 	srand(time(NULL));
 
-	//draw base
-	m_base_shader.use();
 	glm::mat4 mm = glm::mat4(1.0f);
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
-	m_base_shader.setUniformMatrix(m_base_shader.getModelMatrixLocation(), mm);
-	m_base_shader.setUniformMatrix(m_base_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix()); //update camera
-	m_base_shader.setUniformMatrix(m_base_shader.getProjectionMatrixLocation(), projection);
+
+	//background meteors
+	m_background_meteors_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+
+	//draw base
+	m_base_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+	//updateMatrices function also make shader program active
 	m_base_shader.setUniformInt("texture0", 0);
 	// texture for base
 
 	//meteors
-	m_meteor_shader.use();
-	m_meteor_shader.setUniformMatrix(m_meteor_shader.getModelMatrixLocation(), mm);
-	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix()); //update camera
-	m_meteor_shader.setUniformMatrix(m_meteor_shader.getProjectionMatrixLocation(), projection);
+	m_meteor_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
 	//0 ->  glActiveTexture(GL_TEXTURE0); // activate texture unit 0
 	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture0"), 0); // manually
 	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture1"), 1); // manually
 	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture2"), 2); // manually
 	setMeteorsTexNo(3);
-	
+
+	//rockets
+	m_rocket_shader.use();
+	m_rocket_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
 
 	//player
 	m_score = 0;
@@ -69,6 +72,9 @@ m_meteor_shader_tex3{"textures/meteor2.png", GL_TEXTURE2}
 	//shooting 
 	m_loadingAmmoTime = 1.0; //time to load ammo
 	m_loadingAmmoTimer = m_loadingAmmoTime; //so we can shoot at the beginning 
+
+	//base HP
+	m_base_HP = 10;
 
 }
 
@@ -266,7 +272,7 @@ void Manager::createBackground()
 	} //for stackCount
 } //createBackground()
 
-void Manager::createRocket(Shader *shader)
+void Manager::createRocket()
 {
 	glm::vec3 camPos = m_spaceship.getCamPos();
 	glm::vec3 camFront = m_spaceship.getCamFront();
@@ -276,7 +282,7 @@ void Manager::createRocket(Shader *shader)
 		if (m_loadingAmmoTimer >= m_loadingAmmoTime)
 		{
 		
-		m_rockets.emplace_back(shader, camPos.x, camPos.y, camPos.z, camFront);
+		m_rockets.emplace_back(&m_rocket_shader, camPos.x, camPos.y, camPos.z, camFront);
 		m_rocketsNo--;
 		std::cout << "Ammo left: " << m_rocketsNo << '\n';
 		m_loadingAmmoTimer = 0.0;
@@ -348,54 +354,57 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 // main function of manager. logic of game
 bool Manager::play(GLFWwindow * window, double deltaTime)
 {
+	/// create meteors 
+	// new meteor after 1 sec if there is not too many meteors
+	if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
+	{
+		m_meteor_genereate_timer = glfwGetTime();
+		createMeteors();
+	}
+	
+	/// move of spaceship
 	static glm::vec3 spaceship_pos = m_spaceship.getCamPos();
-	m_loadingAmmoTimer += deltaTime;
-
+	//if we have enough fuel, get user input
 	if(m_spaceship.getFuel() > 0)
 	{
 		m_spaceship.Input(window, deltaTime);
-	}
-
-	if (m_spaceship.getCamPos() != spaceship_pos)
-	{
-		if (m_spaceship.getFuel() > 0)
+		//if spaceship moved
+		if (m_spaceship.getCamPos() != spaceship_pos)
 		{
 			spaceship_pos = m_spaceship.getCamPos();
+			//decrease fuel
 			m_spaceship.useFuel(0.1);
+			std::cout << "Spaceship fuel: " << m_spaceship.getFuel() << '\n';
 		}
-		std::cout << "Spaceship fuel: " << m_spaceship.getFuel() << '\n';
 	}
 
+	// loading ammo time
+	m_loadingAmmoTimer += deltaTime;
 	
+	/// set view matrix for each shader -> camera!
+	glm::mat4 mm = glm::mat4(1.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
+	//update view matrix of shaders 
+	m_base_shader.setUniformMatrix(m_base_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_background_meteors_shader.setUniformMatrix(m_background_meteors_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_rocket_shader.setUniformMatrix(m_rocket_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 
-	//TODO -> sprawdzic dlaczego jesli rysujemy cos przed rysowaniem tla to jest problem i tlo sie
-	// nie rysuje. moze nie ma wywolania shader.use w rysowaniu background_meteors albo gdzies indziej??
-	// SPRAWDZIC!!!
-
-
+	/// drawing objects
 	//draw background meteors
+	//rotate background meteors
+	m_background_meteors_shader.rotateObjects(0.2 * deltaTime);
 	for (auto &b : m_background_meteors)
 	{
 		b.draw();
 	}
 
-	m_base_shader.use();
+	//draw base
 	//different shader with different textures? you have to bind those textures
 	m_base_texture.bindTexture();
-	glm::mat4 mm = glm::mat4(1.0f);
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
-
-	//update shaders matrices
-	m_base_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
-	m_background_meteors_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
-	m_meteor_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
-
 	m_base.draw();
 
-
-
 	// draw meteors
-
 	//you have to bind all textures otherwise shape will be black
 	m_meteor_shader_tex1.bindTexture();
 	m_meteor_shader_tex2.bindTexture();
@@ -413,6 +422,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		r.draw();
 	}
 
+	/// delete objects and check collisions
 	//delete rockets and meteors when covered distance is too far
 	distanceAutoDelete();
 
@@ -450,6 +460,25 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		}
 	} //for loop -> rockets
 
+	//check collision of meteor and base
+	for (std::list<Meteor>::iterator it = m_meteors.begin(); it != m_meteors.end();it++)
+	{
+		// if rocket and meteor have collision
+		if (checkCollisionCubeSphere(m_base, *it))
+		{
+			it = deleteMeteor(it); //returns iterator to next element
+			std::cout << "meteor hits base!\n";
+			m_base_HP--;
+
+			if (m_base_HP <= 0)
+			{
+				m_gameOver = true;
+			}
+		}
+	} //for loop -> meteors
+
+
+	/// check if game is over
 	if (!m_gameOver)
 	{
 		return true;

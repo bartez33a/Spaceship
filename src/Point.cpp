@@ -28,6 +28,7 @@ Point::~Point()
 void Point::draw()
 {
 	vao.BindBuffer();
+	shader_->use();
 	glPointSize(m_size);
 	glDrawArrays(GL_POINTS, 0, 1);
 }

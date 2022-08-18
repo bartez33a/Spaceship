@@ -4,7 +4,6 @@
 // - fuel for spaceship
 // - 
 
-
 #include <iostream>
 #include <string>
 #include <glad\glad.h> // glad before glfw!
@@ -44,13 +43,10 @@ float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
 //vecotr of rockets
-Shader *shader_ptr;
 Manager *manager_ptr;
-std::list<Sphere> sphere_list;
 
 int main()
 {
-
 	std::cout << "Welcome to Spacecraft game!\n";
 
 	//initialize glfw
@@ -85,29 +81,11 @@ int main()
 	Manager manager;
 	manager_ptr = &manager;
 
-	//create sahders
-	//create shader programs
-	Shader shader("shaders/shader.vs", "shaders/shader.fs"); //shader without texture
-	shader_ptr = &shader;
-
-
-
-	// view martix for camera
-	glm::mat4 view = glm::mat4(1.0f);	
-	//projection matrix
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
-
 	//enable depth testing for 3d drawing
 	glEnable(GL_DEPTH_TEST);
 
-	double timer_meteor;
-	timer_meteor = glfwGetTime();
-	srand((unsigned int)time(NULL));
-
-
-	//background 
+	// create background 
 	manager.createBackground();
-
 
 	//rendering loop
 	while (!glfwWindowShouldClose(window))
@@ -123,36 +101,6 @@ int main()
 
 		//process inpout function e.g. exit application
 		processInput(window);
-
-		//use camera input and get viewMatrix
-		//cam1.Input(window, deltaTime);
-		//view = cam1.get_viewMatrix();
-
-		view = manager.getViewMatrix();
-
-		//shader for cubes without texture
-		shader.use();
-		glm::mat4 mm = glm::mat4(1.0f);
-		shader.setUniformMatrix(shader.getModelMatrixLocation(), mm);
-		shader.setUniformMatrix(shader.getViewMatrixLocation(), view); //update camera
-		shader.setUniformMatrix(shader.getProjectionMatrixLocation(), projection);
-		
-		//update shader's matices
-		// shader for meteors
-		//meteor_shader.use();
-		//meteor_shader.updateMatrices(mm, view, projection);
-	
-		//// shader for background meteors
-		//background_meteors_shader.use();
-		//background_meteors_shader.updateMatrices(mm, view, projection);
-
-		// create meteors
-		if ((glfwGetTime() - timer_meteor) > 1.0)
-		{
-			timer_meteor = glfwGetTime();
-			manager.createMeteors();
-		}
-
 
 		if (!manager.play(window, deltaTime))
 		{
@@ -195,7 +143,7 @@ void processInput(GLFWwindow *window)
 	{
 		if (!space_pushed) //positive edge
 		{
-			manager_ptr->createRocket(shader_ptr);
+			manager_ptr->createRocket();
 		}
 		space_pushed = true;
 	}

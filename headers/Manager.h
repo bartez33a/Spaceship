@@ -45,6 +45,12 @@ class Manager
 	//shader for background meteors - no texture.
 	Shader m_background_meteors_shader;
 
+	Shader m_rocket_shader;
+
+	double m_meteor_genereate_timer;
+
+	int m_base_HP;
+
 public:
 	Manager();
 	~Manager();
@@ -53,7 +59,7 @@ public:
 	bool checkCollisionSphere(const Sphere &s1, const Sphere& s2);
 	void createMeteors();
 	void createBackground();
-	void createRocket(Shader *shader);
+	void createRocket();
 	std::list<Meteor> &getMeteors();
 	void distanceAutoDelete(); //delete objects because of distance covered
 	std::list<Rocket> &getRockets();

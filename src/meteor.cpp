@@ -62,7 +62,6 @@ Meteor::~Meteor()
 //mamy pozycje poczatkowa zapisana jako position, losujemy kierunek.
 void Meteor::move(double deltaTime)
 {
-
 	float speed_factor = speed * deltaTime;
 	//visualise position.
 	position += direction*speed_factor;
