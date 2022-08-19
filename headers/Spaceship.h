@@ -8,6 +8,7 @@ public:
 	~Spaceship();
 	double getFuel() const;
 	void useFuel(double quantity);
+	void addFuel(double quantity);
 private:
 	double m_fuel;
 

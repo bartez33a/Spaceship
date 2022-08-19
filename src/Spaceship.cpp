@@ -29,3 +29,8 @@ void Spaceship::useFuel(double quantity)
 		m_fuel = 0.0;
 	}
 }
+
+void Spaceship::addFuel(double quantity)
+{
+	m_fuel += quantity;
+}

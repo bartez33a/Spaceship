@@ -38,17 +38,30 @@ class Manager
 	//shader for meteors
 	Shader m_meteor_shader;
 	//textures
+	Texture m_meteor_shader_tex0;
 	Texture m_meteor_shader_tex1;
 	Texture m_meteor_shader_tex2;
-	Texture m_meteor_shader_tex3;
 
 	//shader for background meteors - no texture.
 	Shader m_background_meteors_shader;
-
 	Shader m_rocket_shader;
 
-	double m_meteor_genereate_timer;
+	//fuel
+	struct m_fuel_struct {
+		Cube m_fuel_obj;
+		int m_fuel_texNo;
 
+		m_fuel_struct(Shader *shader, float x, float y, float z, float w, float h, float l, int rep, float R, float G, float B, int texNo) :
+			m_fuel_obj{ shader, x, y, z, w, h, l , rep, R, G ,B }, m_fuel_texNo{ texNo }
+		{}
+		m_fuel_struct() = delete;
+	};
+	std::list<m_fuel_struct> m_fuel_obj_list;
+	Shader m_fuel_shader;
+	Texture m_fuel_shader_tex0;
+	Texture m_fuel_shader_tex1;
+
+	double m_meteor_genereate_timer;
 	int m_base_HP;
 
 public:
@@ -56,7 +69,8 @@ public:
 	~Manager();
 	bool checkCollisionCubes(const Cube &c1, const Cube &c2) const;
 	bool checkCollisionCubeSphere(const Cube &c1, const Sphere &s1) const;
-	bool checkCollisionSphere(const Sphere &s1, const Sphere& s2);
+	bool checkCollisionSphere(const Sphere &s1, const Sphere& s2) const;
+	bool checkCollisionCubePoint(const Cube &c1, const glm::vec3 point) const;
 	void createMeteors();
 	void createBackground();
 	void createRocket();

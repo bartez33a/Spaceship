@@ -28,15 +28,18 @@ void print_position_sphere(const Sphere& s, std::string name) {
 }
 
 Manager::Manager() : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/base/base_shader_tex.fs" },
-m_base_texture{"textures/base/base.jpg", GL_TEXTURE0 },
-m_base{&m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1, 1.0f, 1.0f, 0.0f },
+m_base_texture{ "textures/base/base.jpg", GL_TEXTURE0 },
+m_base{ &m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1, 1.0f, 1.0f, 0.0f },
 //shader for meteors
 m_meteor_shader{ "shaders/shader_meteor_tex.vs", "shaders/shader_meteor_tex.fs" },
 m_background_meteors_shader{ "shaders/shader_background_meteor.vs", "shaders/shader_background_meteor.fs" },
-m_meteor_shader_tex1{ "textures/magma.png", GL_TEXTURE0},
-m_meteor_shader_tex2{ "textures/meteor.png", GL_TEXTURE1},
-m_meteor_shader_tex3{"textures/meteor2.png", GL_TEXTURE2},
-m_rocket_shader("shaders/shader.vs", "shaders/shader.fs") //shader without texture
+m_meteor_shader_tex0{ "textures/meteors/magma.png", GL_TEXTURE0 },
+m_meteor_shader_tex1{ "textures/meteors/meteor.png", GL_TEXTURE1 },
+m_meteor_shader_tex2{ "textures/meteors/meteor2.png", GL_TEXTURE2 },
+m_rocket_shader("shaders/shader.vs", "shaders/shader.fs"), //shader without texture
+m_fuel_shader{ "shaders/fuel/fuel_shader.vs", "shaders/fuel/fuel_shader.fs" },
+m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
+m_fuel_shader_tex1 {"textures/fuel/fuel2.jpg", GL_TEXTURE1}
 {
 	srand(time(NULL));
 
@@ -63,6 +66,12 @@ m_rocket_shader("shaders/shader.vs", "shaders/shader.fs") //shader without textu
 	//rockets
 	m_rocket_shader.use();
 	m_rocket_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+
+
+	m_fuel_shader.use();
+	m_fuel_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+	glUniform1i(glGetUniformLocation(m_fuel_shader.get_ID(), "texture0"), 0); // manually
+	glUniform1i(glGetUniformLocation(m_fuel_shader.get_ID(), "texture1"), 1); // manually
 
 	//player
 	m_score = 0;
@@ -160,7 +169,7 @@ bool Manager::checkCollisionCubeSphere(const Cube & c1, const Sphere & s1) const
 	}
 }
 
-bool Manager::checkCollisionSphere(const Sphere & s1, const Sphere & s2)
+bool Manager::checkCollisionSphere(const Sphere & s1, const Sphere & s2) const
 {
 	//extract position of Sphere
 	glm::vec3 s1_pos = s1.getPosition();
@@ -194,6 +203,38 @@ bool Manager::checkCollisionSphere(const Sphere & s1, const Sphere & s2)
 
 
 unsigned int Manager::m_meteors_ctr = 0;
+
+bool Manager::checkCollisionCubePoint(const Cube & c1, const glm::vec3 point) const
+{
+	//extract cube 1 
+	glm::vec3 c1_pos = c1.getPosition();
+	glm::vec3 c1_dim = c1.getDimensions();
+	float x1 = c1_pos.x;
+	float y1 = c1_pos.y;
+	float z1 = c1_pos.z;
+
+	float w1 = c1_dim.x;
+	float h1 = c1_dim.y;
+	float l1 = c1_dim.z;
+
+	float x2 = point.x;
+	float y2 = point.y;
+	float z2 = point.z;
+	
+	if ((((x1 + w1) >= x2) && (x1 <= x2))
+		&&
+		(((y1 + h1) >= y2) && (y1 <= y2))
+		&&
+		(((z1 + l1) >= z2) && (z1 <= z2))
+		)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 void Manager::createMeteors()
 {
@@ -354,6 +395,16 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 // main function of manager. logic of game
 bool Manager::play(GLFWwindow * window, double deltaTime)
 {
+	
+	///fuel
+	static bool once = false;
+	if (!once)
+	{
+		//m_fuel_obj_list.emplace_back(&m_fuel_shader, 1.0f, 1.0f, -5.0f, .3, .3, .3, 1, 0.0, 0.0, 0.0 , 0);
+		m_fuel_obj_list.emplace_back(&m_fuel_shader, 2.0f, -2.0f, -5.0f, .3, .3, .3, 1, 0.0, 0.0, 0.0, 1);
+		once = true;
+	}
+	
 	/// create meteors 
 	// new meteor after 1 sec if there is not too many meteors
 	if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
@@ -389,6 +440,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 	m_background_meteors_shader.setUniformMatrix(m_background_meteors_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 	m_rocket_shader.setUniformMatrix(m_rocket_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_fuel_shader.setUniformMatrix(m_fuel_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 
 	/// drawing objects
 	//draw background meteors
@@ -406,9 +458,9 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 
 	// draw meteors
 	//you have to bind all textures otherwise shape will be black
+	m_meteor_shader_tex0.bindTexture();
 	m_meteor_shader_tex1.bindTexture();
 	m_meteor_shader_tex2.bindTexture();
-	m_meteor_shader_tex3.bindTexture();
 	for (auto &m : m_meteors)
 	{
 		m.move(deltaTime);
@@ -421,6 +473,16 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		r.move(deltaTime);
 		r.draw();
 	}
+
+	//draw fuel
+	m_fuel_shader_tex0.bindTexture();
+	for (auto& f : m_fuel_obj_list)
+	{
+		f.m_fuel_obj.draw();
+		m_fuel_shader.setUniformInt("tex", f.m_fuel_texNo);
+		//std::cout << "fuel_tex_no = " << f.m_fuel_texNo << '\n';
+	}
+
 
 	/// delete objects and check collisions
 	//delete rockets and meteors when covered distance is too far
@@ -477,6 +539,23 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		}
 	} //for loop -> meteors
 
+
+	//check if we get fuel
+	for (auto it = m_fuel_obj_list.begin(); it != m_fuel_obj_list.end();)
+	{
+		if (checkCollisionCubePoint((*it).m_fuel_obj, m_spaceship.getCamPos()))
+		{
+			//collision
+			it = m_fuel_obj_list.erase(it);
+			m_spaceship.addFuel(5.0f);
+			std::cout << "FUEL TANKED!\n";
+		}
+		else
+		{
+			it++;
+		}
+
+	}
 
 	/// check if game is over
 	if (!m_gameOver)
