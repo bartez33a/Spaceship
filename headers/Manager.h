@@ -27,8 +27,7 @@ class Manager
 	std::list<Rocket> m_rockets;
 	std::list<Point> m_background_meteors;
 
-	//number od textures in meteor
-	int m_meteorTexNo;
+	
 
 	Spaceship m_spaceship; //spaceship object
 	Cube m_base; //base object
@@ -41,7 +40,8 @@ class Manager
 	Texture m_meteor_shader_tex0;
 	Texture m_meteor_shader_tex1;
 	Texture m_meteor_shader_tex2;
-
+	//number od textures in meteor
+	int m_meteorTexNo;
 	//shader for background meteors - no texture.
 	Shader m_background_meteors_shader;
 	Shader m_rocket_shader;
@@ -60,7 +60,7 @@ class Manager
 	Shader m_fuel_shader;
 	Texture m_fuel_shader_tex0;
 	Texture m_fuel_shader_tex1;
-
+	int m_fuelTexNo;
 	double m_meteor_genereate_timer;
 	int m_base_HP;
 
@@ -85,4 +85,5 @@ public:
 	int getMeteorsTexNo() const;
 	glm::mat4 getViewMatrix() const;
 	void mouseInput(double, double);
+	void generateFuel(glm::vec3 position, int percentOfChance);
 };

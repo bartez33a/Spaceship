@@ -39,7 +39,8 @@ m_meteor_shader_tex2{ "textures/meteors/meteor2.png", GL_TEXTURE2 },
 m_rocket_shader("shaders/shader.vs", "shaders/shader.fs"), //shader without texture
 m_fuel_shader{ "shaders/fuel/fuel_shader.vs", "shaders/fuel/fuel_shader.fs" },
 m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
-m_fuel_shader_tex1 {"textures/fuel/fuel2.jpg", GL_TEXTURE1}
+m_fuel_shader_tex1 {"textures/fuel/fuel2.jpg", GL_TEXTURE1},
+m_fuelTexNo{2}
 {
 	srand(time(NULL));
 
@@ -395,16 +396,6 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 // main function of manager. logic of game
 bool Manager::play(GLFWwindow * window, double deltaTime)
 {
-	
-	///fuel
-	static bool once = false;
-	if (!once)
-	{
-		//m_fuel_obj_list.emplace_back(&m_fuel_shader, 1.0f, 1.0f, -5.0f, .3, .3, .3, 1, 0.0, 0.0, 0.0 , 0);
-		m_fuel_obj_list.emplace_back(&m_fuel_shader, 2.0f, -2.0f, -5.0f, .3, .3, .3, 1, 0.0, 0.0, 0.0, 1);
-		once = true;
-	}
-	
 	/// create meteors 
 	// new meteor after 1 sec if there is not too many meteors
 	if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
@@ -476,6 +467,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 
 	//draw fuel
 	m_fuel_shader_tex0.bindTexture();
+	m_fuel_shader_tex1.bindTexture();
 	for (auto& f : m_fuel_obj_list)
 	{
 		f.m_fuel_obj.draw();
@@ -503,8 +495,11 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 			// if rocket and meteor have collision
 			if (checkCollisionCubeSphere(*it, *it2))
 			{
+				glm::vec3 pos = (*it).getPosition();
+				generateFuel(pos, 30);
 				it = deleteRocket(it); //returns iterator to next element
 				it2 = deleteMeteor(it2);
+
 				std::cout << "Score: " << ++m_score << '\n';
 				//if you shoot meteor -> you get more ammo
 				m_rocketsNo += 2;
@@ -539,7 +534,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		}
 	} //for loop -> meteors
 
-
+	
 	//check if we get fuel
 	for (auto it = m_fuel_obj_list.begin(); it != m_fuel_obj_list.end();)
 	{
@@ -593,4 +588,17 @@ void Manager::mouseInput(double xoffset, double yoffset)
 		m_spaceship.useFuel(0.1);
 	}
 
+}
+
+void Manager::generateFuel(glm::vec3 position, int percentOfChance)
+{
+	int chance = rand() % 100;
+	float x = position.x;
+	float y = position.y;
+	float z = position.z;
+	if (chance < percentOfChance)
+	{
+		int texNo = rand() % m_fuelTexNo;
+		m_fuel_obj_list.emplace_back(&m_fuel_shader, x, y, z, 0.3f, 0.3f, 0.3f, 1, 0.0f, 0.0f, 0.0f, texNo);
+	}
 }
