@@ -31,7 +31,7 @@ Manager::Manager() : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/
 m_base_texture{ "textures/base/base.jpg", GL_TEXTURE0 },
 m_base{ &m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1, 1.0f, 1.0f, 0.0f },
 //shader for meteors
-m_meteor_shader{ "shaders/shader_meteor_tex.vs", "shaders/shader_meteor_tex.fs" },
+m_meteor_shader{ "shaders/meteor/shader_meteor_tex.vs", "shaders/meteor/shader_meteor_tex.fs" },
 m_background_meteors_shader{ "shaders/shader_background_meteor.vs", "shaders/shader_background_meteor.fs" },
 m_meteor_shader_tex0{ "textures/meteors/magma.png", GL_TEXTURE0 },
 m_meteor_shader_tex1{ "textures/meteors/meteor.png", GL_TEXTURE1 },
@@ -251,8 +251,8 @@ void Manager::createMeteors()
 		{
 			valid_pos = true;
 			pos_x = float((rand() % 10000 - 5000)) / 1000.0f / 2.5f;
-			pos_y = float((rand() % 10000 - 5000)) / 1000.0f / 2.5f;
-			pos_z = float((rand() % 10000 - 5000)) / 1000.0f / 5.0f;
+			pos_y = float((rand() % 10000 - 5000)) / 1000.0f / 5.0f;
+			pos_z = float((rand() % 10000 - 20000)) / 1000.0f; //
 			radius = float((rand() % 1000)) / 1000.0f + .1f;
 		}
 		else
@@ -260,8 +260,8 @@ void Manager::createMeteors()
 			do
 			{
 				pos_x = float((rand() % 10000 - 5000)) / 1000.0f / 2.5f;
-				pos_y = float((rand() % 10000 - 5000)) / 1000.0f / 2.5f;
-				pos_z = float((rand() % 10000 - 5000)) / 1000.0f / 5.0f;
+				pos_y = float((rand() % 10000 - 5000)) / 1000.0f / 5.0f;
+				pos_z = float((rand() % 10000 - 20000)) / 1000.0f;
 				radius = float((rand() % 1000)) / 1000.0f + .1f;
 				Sphere m2(&m_meteor_shader, pos_x, pos_y, pos_z, radius);
 

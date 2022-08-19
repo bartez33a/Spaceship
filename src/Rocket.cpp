@@ -6,7 +6,7 @@ Rocket::Rocket(Shader *s, float x, float y, float z, glm::vec3 dir) : Cube{ s, x
 {
 	counter++;
 	id_no = counter;
-	speed =  15.0;
+	speed =  25.0;
 	init_pos  = glm::vec3(x, y, z) ;
 	//std::cout << "Rocket constructor. Position: (" << x << ", " << y << ", " << z << ")\n";
 }
