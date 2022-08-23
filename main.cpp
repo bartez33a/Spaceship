@@ -1,7 +1,6 @@
 // TODO
-// - create shader for rockets
-// - bound rockets number, bound time between two consecutive shoots
-// - fuel for spaceship
+// - create rocket texture
+// - 
 // - 
 
 #include <iostream>
@@ -84,9 +83,6 @@ int main()
 	//enable depth testing for 3d drawing
 	glEnable(GL_DEPTH_TEST);
 
-	// create background 
-	manager.createBackground();
-
 	//rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -99,15 +95,12 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//process inpout function e.g. exit application
-		processInput(window);
 
 		if (!manager.play(window, deltaTime))
 		{
 			//gameOver
 			glfwSetWindowShouldClose(window, true);
 		}
-
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -116,6 +109,7 @@ int main()
 	//terminate glfw
 	glfwTerminate();
 
+	//wait for key
 	getchar();
 
 	return EXIT_SUCCESS;
@@ -126,31 +120,6 @@ int main()
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
-}
-
-
-// porcess window inputs
-void processInput(GLFWwindow *window)
-{
-	static bool space_pushed = false;
-
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-		
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		if (!space_pushed) //positive edge
-		{
-			manager_ptr->createRocket();
-		}
-		space_pushed = true;
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
-	{
-		space_pushed = false;
-	}
 }
 
 //mouse input callback function
@@ -166,7 +135,6 @@ void mouseInput(GLFWwindow* window, double xpos, double ypos)
 		mouse_lastY = ypos;
 		firstMouse = true;
 	}
-
 
 	//mouse xpos -> positive to the right
 	//mouse ypos -> positive to the bottom!

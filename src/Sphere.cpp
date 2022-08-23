@@ -1,7 +1,5 @@
 #include "../headers/Sphere.h"
 
-
-static int id = 0;
 Sphere::Sphere(Shader *shader, float x, float y, float z, float r, float R, float G, float B) : Shape(shader, x, y, z, R, G, B), radius{ r }
 {
 	position.x = x;
@@ -11,7 +9,6 @@ Sphere::Sphere(Shader *shader, float x, float y, float z, float r, float R, floa
 	init_pos = position;
 
 	modelMatrix = glm::mat4(1.0f);
-	id_no = id++;
 
 	struct vertex 
 	{
@@ -113,20 +110,11 @@ Sphere::Sphere(Shader *shader, float x, float y, float z, float r, int rep, int 
 	position.y = y;
 	position.z = z;
 
-	auto print_sphere = [=]() {
-		std::cout << "Creating sphere id: " << id_no << 
-			", tex_no: " << m_tex_no <<
-			" x = " << x << " y =  " << y << " z = " << z << 
-			"radius = " << r << '\n';
-	};
-
-	//print_sphere();
 	
 	init_pos = position;
 
 	modelMatrix = glm::mat4(1.0f);
-	id_no = id++;
-
+	
 	struct vertex
 	{
 		float x, y, z;
@@ -222,17 +210,15 @@ Sphere::Sphere(Shader *shader, float x, float y, float z, float r, int rep, int 
 	ebo.UnbindBuffer();
 }
 
-
-
-
+// destructor
 Sphere::~Sphere()
 {
-	//std::cout << "Sphere destructor no. " << id_no << "\n";
 }
 
 void Sphere::draw()
 {
-	shader_->use();	
+	shader_->use();
+
 	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix);
 	vao.BindBuffer();
 

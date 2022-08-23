@@ -134,7 +134,6 @@
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Manager.cpp" />
     <ClCompile Include="src\meteor.cpp" />
-    <ClCompile Include="src\Object.cpp" />
     <ClCompile Include="src\Point.cpp" />
     <ClCompile Include="src\Rectangle.cpp" />
     <ClCompile Include="src\Rocket.cpp" />
@@ -153,7 +152,6 @@
     <ClInclude Include="headers\EBO.h" />
     <ClInclude Include="headers\Manager.h" />
     <ClInclude Include="headers\meteor.h" />
-    <ClInclude Include="headers\Object.h" />
     <ClInclude Include="headers\Point.h" />
     <ClInclude Include="headers\Rectangle.h" />
     <ClInclude Include="headers\Rocket.h" />

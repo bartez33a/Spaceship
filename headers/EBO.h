@@ -2,8 +2,10 @@
 
 #include <glad\glad.h>
 
+// OpenGL - element buffer object class
 class EBO
 {
+	// ID of EBO
 	GLuint ID;
 public:
 	EBO();

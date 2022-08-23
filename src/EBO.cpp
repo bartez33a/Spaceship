@@ -3,11 +3,13 @@
 
 EBO::EBO()
 {
+	// generate EBO
 	glGenBuffers(1, &ID);
 }
 
 EBO::~EBO()
 {
+	// delete EBO
 	glDeleteBuffers(1, &ID);
 }
 

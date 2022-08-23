@@ -1,32 +1,8 @@
 #include "..\headers\Manager.h"
 
-// TODO -> change to lambda
-void print_position_cubes(const Cube& c, std::string name) {
-	glm::vec3 pos = c.getPosition();
-	glm::vec3 dim = c.getDimensions();
-	float x1 = pos.x;
-	float y1 = pos.y;
-	float z1 = pos.z;
+unsigned int Manager::m_meteors_ctr = 0;
 
-	float w1 = dim.x;
-	float h1 = dim.y;
-	float l1 = dim.z;
-
-	std::cout << name << " Position: (" << x1 << ",\t" << y1 << ",\t" << z1 << ") dim: (" << w1 << ",\t" << h1 << ",\t" << l1 << ")\n";
-}
-
-// TODO -> change to lambda
-void print_position_sphere(const Sphere& s, std::string name) {
-	glm::vec3 pos = s.getPosition();
-	float x1 = pos.x;
-	float y1 = pos.y;
-	float z1 = pos.z;
-
-	float r1 = s.getRadius();
-
-	std::cout << name << " Position: (" << x1 << ",\t" << y1 << ",\t" << z1 << ") radius: (" << r1 << ")\n";
-}
-
+// constructor for manager
 Manager::Manager() : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/base/base_shader_tex.fs" },
 m_base_texture{ "textures/base/base.jpg", GL_TEXTURE0 },
 m_base{ &m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1, 1.0f, 1.0f, 0.0f },
@@ -42,38 +18,40 @@ m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
 m_fuel_shader_tex1 {"textures/fuel/fuel2.jpg", GL_TEXTURE1},
 m_fuelTexNo{2}
 {
+	// for random generator
 	srand(time(NULL));
 
+	// model and projection matrix for objects
 	glm::mat4 mm = glm::mat4(1.0f);
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
 
-	//background meteors
+	// update background meteors matrices
 	m_background_meteors_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
 
-	//draw base
+	//update base matrices
 	m_base_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
 	//updateMatrices function also make shader program active
-	m_base_shader.setUniformInt("texture0", 0);
-	// texture for base
+	m_base_shader.setUniformInt("texture0", 0); // texture for base
 
 	//meteors
+	//update meteors matrices
 	m_meteor_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
-	//0 ->  glActiveTexture(GL_TEXTURE0); // activate texture unit 0
+	//and set textures' uniforms
 	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture0"), 0); // manually
 	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture1"), 1); // manually
 	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture2"), 2); // manually
+	// set number of meteors textures
 	setMeteorsTexNo(3);
 
-	//rockets
-	m_rocket_shader.use();
+	//update rockets matrices
 	m_rocket_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
 
-
-	m_fuel_shader.use();
+	// update fuel objects matrices
 	m_fuel_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
 	glUniform1i(glGetUniformLocation(m_fuel_shader.get_ID(), "texture0"), 0); // manually
 	glUniform1i(glGetUniformLocation(m_fuel_shader.get_ID(), "texture1"), 1); // manually
 
+	/// game settings
 	//player
 	m_score = 0;
 	m_rocketsNo = 10;
@@ -86,13 +64,18 @@ m_fuelTexNo{2}
 	//base HP
 	m_base_HP = 10;
 
-}
+	// create background -> darw background meteors
+	createBackground();
+} // constructor
 
-
+// destructor
 Manager::~Manager()
 {
 }
 
+// function which checks collision of two Cubes
+// true -> collision
+// false -> no collision
 bool Manager::checkCollisionCubes(const Cube &c1, const Cube &c2) const
 {
 	//extract cube 1 
@@ -132,6 +115,9 @@ bool Manager::checkCollisionCubes(const Cube &c1, const Cube &c2) const
 	}
 }
 
+// function which checks collision of Cube and Sphere
+// true -> collision
+// false -> no collision
 bool Manager::checkCollisionCubeSphere(const Cube & c1, const Sphere & s1) const
 {
 	//extract position of cube 
@@ -170,6 +156,9 @@ bool Manager::checkCollisionCubeSphere(const Cube & c1, const Sphere & s1) const
 	}
 }
 
+// function which checks collision of two Spheres
+// true -> collision
+// false -> no collision
 bool Manager::checkCollisionSphere(const Sphere & s1, const Sphere & s2) const
 {
 	//extract position of Sphere
@@ -202,9 +191,9 @@ bool Manager::checkCollisionSphere(const Sphere & s1, const Sphere & s2) const
 	}
 }
 
-
-unsigned int Manager::m_meteors_ctr = 0;
-
+// function which checks collision of two Cube and Point (e.g. Spaceship)
+// true -> collision
+// false -> no collision
 bool Manager::checkCollisionCubePoint(const Cube & c1, const glm::vec3 point) const
 {
 	//extract cube 1 
@@ -237,6 +226,9 @@ bool Manager::checkCollisionCubePoint(const Cube & c1, const glm::vec3 point) co
 	}
 }
 
+// create meteor in valid position
+// meteor cannot be generate in position in which is another meteor!
+// TODO! meteor cannot be generete in spaceship's position!
 void Manager::createMeteors()
 {
 	if (m_meteors.size() < m_meteorsMaxNo)
@@ -250,10 +242,11 @@ void Manager::createMeteors()
 		if (m_meteors.size() <= 1)
 		{
 			valid_pos = true;
+			// random position and radius
 			pos_x = float((rand() % 10000 - 5000)) / 1000.0f / 2.5f;
 			pos_y = float((rand() % 10000 - 5000)) / 1000.0f / 5.0f;
-			pos_z = float((rand() % 10000 - 20000)) / 1000.0f; //
-			radius = float((rand() % 1000)) / 1000.0f + .1f;
+			pos_z = float((rand() % 10000 - 20000)) / 1000.0f; 
+			radius = float((rand() % 1000)) / 1000.0f + .2f;
 		}
 		else
 		{
@@ -262,16 +255,16 @@ void Manager::createMeteors()
 				pos_x = float((rand() % 10000 - 5000)) / 1000.0f / 2.5f;
 				pos_y = float((rand() % 10000 - 5000)) / 1000.0f / 5.0f;
 				pos_z = float((rand() % 10000 - 20000)) / 1000.0f;
-				radius = float((rand() % 1000)) / 1000.0f + .1f;
+				radius = float((rand() % 1000)) / 1000.0f + .2f;
 				Sphere m2(&m_meteor_shader, pos_x, pos_y, pos_z, radius);
 
 				for (auto& m : m_meteors)
 				{
-					//valid_pos -> gdy brak kolizji == true
+					//valid_pos -> if no collision == true
 					valid_pos = !checkCollisionSphere(m, m2);
 					if (!valid_pos)
 					{
-						// gdy jest kolizja -> przerwij i losuj ponownie!
+						// when there is collision -> break and draw again!
 						break;
 					}
 				}// for each meteor
@@ -282,7 +275,7 @@ void Manager::createMeteors()
 	}
 }
 
-//create background -> add Point to list of background points
+// function which creates background -> add Point to list of background points
 void Manager::createBackground()
 {
 	// distance from origin
@@ -314,42 +307,42 @@ void Manager::createBackground()
 	} //for stackCount
 } //createBackground()
 
+// fucntion for generate rockets
 void Manager::createRocket()
 {
 	glm::vec3 camPos = m_spaceship.getCamPos();
 	glm::vec3 camFront = m_spaceship.getCamFront();
-
+	
+	// only if spaceship has enough ammo
 	if (m_rocketsNo > 0)
 	{
+		// if ammo is loaded
 		if (m_loadingAmmoTimer >= m_loadingAmmoTime)
 		{
-		
-		m_rockets.emplace_back(&m_rocket_shader, camPos.x, camPos.y, camPos.z, camFront);
-		m_rocketsNo--;
-		std::cout << "Ammo left: " << m_rocketsNo << '\n';
-		m_loadingAmmoTimer = 0.0;
+			// create rockets
+			m_rockets.emplace_back(&m_rocket_shader, camPos.x, camPos.y, camPos.z, camFront);
+			// decrease ammo
+			m_rocketsNo--;
+			// show information
+			std::cout << "Ammo left: " << m_rocketsNo << '\n';
+			// reset loading timer
+			m_loadingAmmoTimer = 0.0;
 		}
 	}
 	else
 	{
 		std::cout << "No more ammo!\n";
-		m_gameOver = true;
 	}
-}
+} // create Rocket
 
-// get list of Meteors
-std::list<Meteor>& Manager::getMeteors()
-{
-	return m_meteors;
-}
 
-// delete objects when covered distance is too far
+// delete objects when covered distance is too long
 void Manager::distanceAutoDelete()
 {
 	//delete rockets
-	for (std::list<Rocket>::iterator it = m_rockets.begin(); it != m_rockets.end();)
+	for (auto it = m_rockets.begin(); it != m_rockets.end();)
 	{
-		if ((*it).checkDistance() > 15.0f)
+		if ((*it).checkDistance() > 20.0f)
 		{
 			it = m_rockets.erase(it);
 		}
@@ -360,9 +353,9 @@ void Manager::distanceAutoDelete()
 	}
 
 	//delete meteors
-	for (std::list<Meteor>::iterator it = m_meteors.begin(); it != m_meteors.end();)
+	for (auto it = m_meteors.begin(); it != m_meteors.end();)
 	{
-		if ((*it).checkDistance() > 30.0f)
+		if ((*it).checkDistance() > 50.0f)
 		{
 			it = m_meteors.erase(it);
 		}
@@ -373,12 +366,6 @@ void Manager::distanceAutoDelete()
 			it++;
 		}
 	}
-}
-
-// get list of rockets
-std::list<Rocket>& Manager::getRockets()
-{
-	return m_rockets;
 }
 
 // delete meteor from list of meteors
@@ -393,9 +380,12 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 	return m_rockets.erase(it);
 }
 
-// main function of manager. logic of game
+// main function of manager. logic of game, input processing, creating and deleting objects
 bool Manager::play(GLFWwindow * window, double deltaTime)
 {
+	///process keyboard input
+	processInput(window);
+
 	/// create meteors 
 	// new meteor after 1 sec if there is not too many meteors
 	if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
@@ -420,7 +410,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		}
 	}
 
-	// loading ammo time
+	// increase loading ammo time
 	m_loadingAmmoTimer += deltaTime;
 	
 	/// set view matrix for each shader -> camera!
@@ -535,7 +525,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 	} //for loop -> meteors
 
 	
-	//check if we get fuel
+	//check if we tank fuel
 	for (auto it = m_fuel_obj_list.begin(); it != m_fuel_obj_list.end();)
 	{
 		if (checkCollisionCubePoint((*it).m_fuel_obj, m_spaceship.getCamPos()))
@@ -549,8 +539,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		{
 			it++;
 		}
-
-	}
+	} // tank fuel
 
 	/// check if game is over
 	if (!m_gameOver)
@@ -575,21 +564,52 @@ int Manager::getMeteorsTexNo() const
 	return m_meteorTexNo;
 }
 
+// get view matrix from m_spaceship object
 glm::mat4 Manager::getViewMatrix() const
 {
 	return m_spaceship.get_viewMatrix();
 }
 
+// mouse input callback
 void Manager::mouseInput(double xoffset, double yoffset)
 {
+	//if spaceship has enough fuel
 	if (m_spaceship.getFuel() > 0)
 	{
+		// process mouse input -> so we can rotate spaceship
 		m_spaceship.mouseInput(xoffset, yoffset);
+		// and decrease amount of fuel
 		m_spaceship.useFuel(0.1);
 	}
-
 }
 
+// keyboard callback funtion
+void Manager::processInput(GLFWwindow * window)
+{
+	static bool space_pushed = false;
+
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		if (!space_pushed) //positive edge
+		{
+			createRocket();
+		}
+		space_pushed = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+	{
+		space_pushed = false;
+	}
+}
+
+// function which creates fuel objects (from destroyed meteor)
+// first argument -> position of object
+// second argument -> percent of chance to generate object
 void Manager::generateFuel(glm::vec3 position, int percentOfChance)
 {
 	int chance = rand() % 100;

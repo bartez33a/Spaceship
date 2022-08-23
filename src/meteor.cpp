@@ -1,18 +1,14 @@
 #include "../headers/meteor.h"
 
-int Meteor::counter = 0;
-
 Meteor::Meteor(Shader *s, float x, float y, float z, float r, float R, float G, float B) : Sphere(s, x, y, z, r, R, G, B)
 {
-	counter++;
-	id_no = counter;
+	// random position
 	srand(time(NULL));
 	float rand_x = float(rand() % 2001 - 1000) / 1000.0f / 2.0; // -1 , 1.0
 	float rand_y = float(rand() % 2001 - 1000) / 1000.0f / 2.0; // -1.0 , 1.0
-
+	// random speed
 	speed = float(rand() % 5000) / 1000.0f;
-	//speed = 30.0f;
-
+	// random direction of movement
 	direction.x = rand_x;
 	direction.y = rand_y;
 	direction.y = 0.0f;
@@ -22,19 +18,16 @@ Meteor::Meteor(Shader *s, float x, float y, float z, float r, float R, float G, 
 
 Meteor::Meteor(Shader *s, float x, float y, float z, float r, int rep, int tex_no, float R, float G, float B): Sphere(s, x, y, z, r, rep, tex_no, R, G, B)
 {	
-	counter++;
-	id_no = counter;
+	// random position
 	srand(time(NULL));
 	float rand_x = float(rand() % 2001 - 1000) / 1000.0f / 2.0f; // -1 , 1.0
 	float rand_y = float(rand() % 2001 - 1000) / 1000.0f / 2.0f; // -1.0 , 1.0
-
+	// random speed
 	speed = (float(rand() % 2000) + 1000.0 ) / 1000.0f;
-	//speed = 2.0f;
-
+	// random direction of movement
 	direction.x = rand_x;
 	direction.y = rand_y;
-	//direction.y = 0.0f;
-	direction.z = 1.0f;
+	direction.z = 1.0f; //to us
 	glm::normalize(direction);
 }
 
@@ -51,30 +44,27 @@ Meteor::Meteor(const Meteor & m, int rep, int tex_no) : Sphere(m.shader_, m.x_, 
 	direction = m.direction;
 }
 
-
 Meteor::~Meteor()
 {
-	//std::cout << "Removing meteor!\n";
 }
 
-
-
-//mamy pozycje poczatkowa zapisana jako position, losujemy kierunek.
+// move meteor
 void Meteor::move(double deltaTime)
 {
 	float speed_factor = speed * deltaTime;
-	//visualise position.
+	//change position of meteor.
 	position += direction*speed_factor;
-	//std::cout << "position of meteor (" << position.x << ", " << position.y << ", " << position.z << ")\n";
+	// update modelMatrix variable. function draw() updates model matrix in shader
 	modelMatrix = glm::translate(modelMatrix, direction*speed_factor);
-	//std::cout << "meteor no. " << id_no << " position (" << position.x << ", " << position.y << ", " << position.z << ")\n";
 }
 
+// get position of meteor
 glm::vec3 Meteor::getPosition() const
 {
 	return position;
 }
 
+// function returns distance from initial position
 float Meteor::checkDistance()
 {
 	return sqrt(pow((position.x - init_pos.x), 2.0f) + pow((position.y - init_pos.y), 2.0f) + 

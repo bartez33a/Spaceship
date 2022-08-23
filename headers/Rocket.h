@@ -5,7 +5,6 @@
 class Rocket :
 	public Cube
 {
-	static int counter;
 	//direction of movement
 	glm::vec3 direction;
 	//speed of rocket

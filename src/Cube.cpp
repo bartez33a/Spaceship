@@ -1,21 +1,20 @@
 #include "../headers/Cube.h"
 
-
 //constructor for cube without texture
 // x, y, z -> coordinates of bottom front left corner
 // w, h, l -> width, height, length
-// RGB -> color of cube
+// RGB -> color of cube's vertices
 Cube::Cube(Shader *shader, float x, float y, float z, float w, float h, float l, float R, float G, float B): Shape(shader, x,y,z,R,G,B), w_(w), h_(h), l_(l)
 {
+	// initialize modelMatrix for moving body
 	modelMatrix = glm::mat4(1.0f);
+	//initialize position's vector
 	position.x = x;
 	position.y = y;
 	position.z = z;
-	//TODO
-	//przerobic na const w Shape.h i dodac w konstruktorze shape.
+	// TODO change to const in Shape.h and add to shape's constructor
 	init_pos = position;
-	//std::cout << "init position: " << " x = " << x << " y = " << y << " z  = " << z << '\n';
-
+	
 	//(x,y,z) -> front, left, bottom point of cube
 	float vertices[] = {
 		//x, y, z, R, G, B
@@ -82,7 +81,9 @@ Cube::Cube(Shader *shader, float x, float y, float z, float w, float h, float l,
 // RGB -> color of cube
 Cube::Cube(Shader *shader, float x, float y, float z, float w, float h, float l, int rep, float R, float G, float B) : Shape(shader, x,y,z,R,G,B), w_(w), h_(h), l_(l)
 {
+	// initialize modelMatrix for moving body
 	modelMatrix = glm::mat4(1.0f);
+	// initialize position's vector
 	position.x = x;
 	position.y = y;
 	position.z = z;
@@ -142,6 +143,7 @@ Cube::Cube(Shader *shader, float x, float y, float z, float w, float h, float l,
 	vao.UnbindBuffer();
 }
 
+// destructor
 Cube::~Cube()
 {
 	// unbind buffers
@@ -149,9 +151,11 @@ Cube::~Cube()
 	vbo.UnbindBuffer();
 }
 
+// fuction for drawing Cube
 void Cube::draw()
 {
 	vao.BindBuffer();
+	//use shader and set modelMatrix
 	shader_->use();
 	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix);
 
@@ -160,27 +164,13 @@ void Cube::draw()
 	vao.UnbindBuffer();
 }
 
-//draw object, matrices needed
-void Cube::draw(glm::mat4 model, glm::mat4 view, glm::mat4 projection)
-{
-	vao.BindBuffer();
-	shader_->use();
-
-	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), model);
-	shader_->setUniformMatrix(shader_->getViewMatrixLocation(), view);
-	shader_->setUniformMatrix(shader_->getProjectionMatrixLocation(),projection );
-
-
-	//draw object -> bind buffer and draw all vertices
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	vao.UnbindBuffer();
-}
-
+// get actual position of Cube
 glm::vec3 Cube::getPosition() const
 {
 	return position;
 }
 
+// get Cube's dimentions
 glm::vec3 Cube::getDimensions() const
 {
 	glm::vec3 dimensions;
@@ -190,11 +180,13 @@ glm::vec3 Cube::getDimensions() const
 	return dimensions;
 }
 
+// get model matrix of cube
 glm::mat4 Cube::getModelMatrix() const
 {
 	return modelMatrix;
 }
 
+// function for printing Cube's position and dimensions
 std::ostream & operator<<(std::ostream& str, Cube const &c)
 {
 	// TODO: insert return statement here
