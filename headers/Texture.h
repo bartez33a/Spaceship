@@ -9,11 +9,6 @@
 
 class Texture
 {
-	//parameters of image
-	int width, height, channels;
-	//generating texture object
-	unsigned int ID;
-	// texture units
 public:
 	enum texUnit {
 		tU0 = GL_TEXTURE0,
@@ -46,21 +41,33 @@ public:
 		clamp_to_border = GL_CLAMP_TO_BORDER
 	};
 
-	int m_tU;
-
-public:
+	// constructor for Texture
 	Texture(const char* file, int tU);
-	//Texture(const Texture &t) = delete;
+	// default constructor
+	Texture() = delete;
+	// destructor
 	~Texture();
+	// function for flipping image
 	void flipImageVertically(bool flip);
+	// bind texture
 	void bindTexture();
+	// unbind texture
 	void unbindTexture();
 
+	// set minify filter options
 	void setMinFilter(filterMethod method = filterMethod::nearest);
+	// set magnify filter options
 	void setMagFilter(filterMethod method = filterMethod::linear);
-	
+	// set wrapping method
 	void setWrapS(wrappingMethod method = wrappingMethod::repeat);
 	void setWrapR(wrappingMethod method = wrappingMethod::repeat);
 	void setWrapT(wrappingMethod method = wrappingMethod::repeat);
+private:
+	// texture object ID
+	unsigned int ID;
+	//parameters of image
+	int width, height, channels;
+	// selected texture unit
+	int m_tU;
 };
 

@@ -1,15 +1,21 @@
 #include "../headers/Sphere.h"
 
+//constructor for sphere without texture
+// (x,y,z) - position of center of sphere
+// r - radius
+// R, G, B - color of each vertex
 Sphere::Sphere(Shader *shader, float x, float y, float z, float r, float R, float G, float B) : Shape(shader, x, y, z, R, G, B), radius{ r }
 {
+	// position (glm::vec3) - actual position of sphere
 	position.x = x;
 	position.y = y;
 	position.z = z;
-
+	// init position from shape class
 	init_pos = position;
-
+	// model matrix for moving object
 	modelMatrix = glm::mat4(1.0f);
 
+	/// creating vertices
 	struct vertex 
 	{
 		float x, y, z;
@@ -102,19 +108,27 @@ Sphere::Sphere(Shader *shader, float x, float y, float z, float r, float R, floa
 }
 
 //constructor of Sphere object with texture
+//constructor for sphere without texture
+// (x,y,z) - position of center of sphere
+// r - radius
+// rep - number of repetitions of texture
+// tex_no - number of texture for sphere 
+// R, G, B - color of each vertex
 Sphere::Sphere(Shader *shader, float x, float y, float z, float r, int rep, int tex_no, float R, float G, float B): Shape(shader, x, y, z, R, G, B), radius{ r }
 {
-	//texture  number
-	m_tex_no = tex_no;
+	// position (glm::vec3) - actual position of sphere
 	position.x = x;
 	position.y = y;
 	position.z = z;
-
-	
+	// init position from shape class
 	init_pos = position;
-
+	// model matrix for moving object
 	modelMatrix = glm::mat4(1.0f);
-	
+	// assign texture  number for drawing
+	// this texture number is send to shader by uniform when draw function is called
+	m_tex_no = tex_no;
+
+	/// creating vertices
 	struct vertex
 	{
 		float x, y, z;
@@ -215,35 +229,41 @@ Sphere::~Sphere()
 {
 }
 
+// drawing function without sending texture number to shader
 void Sphere::draw()
 {
+	// use shader program
 	shader_->use();
-
+	// set model matrix
 	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix);
+	// and draw object
 	vao.BindBuffer();
-
 	glDrawElements(GL_TRIANGLES, indices_number, GL_UNSIGNED_INT, 0);
 	vao.UnbindBuffer();
 }
 
+// drawing function with sending texture number to shader
 void Sphere::draw_tex()
 {
+	// use shader program
 	shader_->use();
 	//select texture
 	shader_->setUniformInt("tex", m_tex_no);
+	// set model matrix
 	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix); //translate object
+	// and draw object
 	vao.BindBuffer();
-	//std::cout << "Draw meteor " << id_no << " m_tex_no = " << m_tex_no << '\n';
 	glDrawElements(GL_TRIANGLES, indices_number, GL_UNSIGNED_INT, 0);
 	vao.UnbindBuffer();
 }
 
-
+// get radius of sphere
 float Sphere::getRadius() const
 {
 	return radius;
 }
 
+// get actual position of sphere
 glm::vec3 Sphere::getPosition() const
 {
 	return position;

@@ -54,7 +54,7 @@ void Meteor::move(double deltaTime)
 	float speed_factor = speed * deltaTime;
 	//change position of meteor.
 	position += direction*speed_factor;
-	// update modelMatrix variable. function draw() updates model matrix in shader
+	// update modelMatrix matrix from sphere class. function draw() updates model matrix in shader
 	modelMatrix = glm::translate(modelMatrix, direction*speed_factor);
 }
 

@@ -4,7 +4,6 @@
 Rectangle::Rectangle(float x, float y, float z, float w, float h, float R, float G, float B): x_(x), y_(y), z_(z), w_(w), h_(h),
 R_(R), G_(G), B_(B)
 {
-
 	//for EBO and glDrawElements
 	float vertices_rect[] = {
 		x,			y,			0,		R_, G_, B_,
@@ -18,19 +17,6 @@ R_(R), G_(G), B_(B)
 		2, 3, 0
 	};
 
-	//it's for glDrawArrays, we have to change VBO data!
-	/*
-	float vertices[] = {
-		x,			y,			z_,		R_, G_, B_,
-		x + w,		y,			z_,		R_, G_, B_,
-		x + w,		y + h,		z_,		R_, G_, B_,
-		x + w,		y + h,		z_,		R_, G_, B_,
-		x,			y + h,		z_,		R_, G_, B_,
-		x,			y,			z_,		R_, G_, B_
-	};
-	*/
-
-
 	vbo.LoadBufferData(vertices_rect, sizeof(vertices_rect));
 	vao.BindBuffer();
 	ebo.LoadBufferData(indices, sizeof(indices));
@@ -40,18 +26,20 @@ R_(R), G_(G), B_(B)
 	ebo.UnbindBuffer();
 }
 
-
+// destructor
 Rectangle::~Rectangle()
 {
 	vao.UnbindBuffer();
 	vbo.UnbindBuffer();
 }
 
-// draw rectangle
+// function for drawing rectangle
+// before call of this function you should make shader program active
 void Rectangle::draw()
 {
+	// bind buffer
 	vao.BindBuffer();
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	// draw rectangle
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 

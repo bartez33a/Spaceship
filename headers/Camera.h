@@ -9,18 +9,6 @@
 //it's a FPS camera
 class Camera
 {
-	glm::vec3 position; //position of camera
-	glm::vec3 front; // target of camera is camera's front!
-	glm::vec3 up_vector; //global coordinate system's up vector
-	glm::mat4 view_matrix;
-	float speedFactor;
-
-	
-	// angles
-	float pitch;
-	float yaw;
-	float roll;
-
 public:
 	// constructor
 	Camera(glm::vec3 pos, glm::vec3 dir, glm::vec3 up_vec);
@@ -40,5 +28,18 @@ public:
 	glm::vec3 getCamFront() const;
 	// get viewMatrix
 	glm::mat4 get_viewMatrix() const;
+private:
+	glm::vec3 position; //position of camera
+	glm::vec3 front; // target of camera is camera's front!
+	glm::vec3 up_vector; //global coordinate system's up vector
+	glm::mat4 view_matrix;
+	float speedFactor;
+
+
+	// angles
+	float pitch;
+	float yaw;
+	float roll;
+
 };
 

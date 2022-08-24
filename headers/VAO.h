@@ -5,12 +5,19 @@
 
 class VAO
 {
-	GLuint ID;
 public:
+	// constructor for vertex array object
 	VAO();
+	// destructor
 	~VAO();
+	// bind VAO
 	void BindBuffer();
+	// unbind VAO
 	void UnbindBuffer();
+	// set attributes for VAO
 	void SetAttribPointer(VBO &vbo, int location, int attribSize, int stride, int offset);
+private:
+	// VAO ID
+	GLuint ID;
 };
 

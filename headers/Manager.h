@@ -18,7 +18,6 @@ class Manager
 public:
 	Manager();
 	~Manager();
-
 	/// main function
 	bool play(GLFWwindow * window, double deltaTime);
 	// get number of meteors textures
