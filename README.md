@@ -1,13 +1,15 @@
 # Spaceship
 
+## Description
+
 It's a 3D game, which uses OpenGL.
 
 We can fly our spaceship and defend our base from meteors. We can shoot to meteors with rockets.
 Spaceship has limited amount of fuel, but when we destroy meteor, it can drop fuel object and we can tank our spaceship.
 We can get score by destroying meteors.
 When specified number of meteors hit our base - we lose and game is over.
-
 We can use our mouse to rotate spaceship and WASD keys to move spaceship.
+
 When we press SPACE key, spaceship shoot with rocket.
 
 ## Screenshots
