@@ -1,7 +1,11 @@
 // TODO
 // - create rocket texture
-// - 
-// - 
+// - show base HP, score, loading ammo time
+// - add few more weapons
+// - increase size of spaceship?
+// - add option to save score and add database with best scores
+// - add menu e.g. for show best score, exit game
+// - ???
 
 #include <iostream>
 #include <string>
