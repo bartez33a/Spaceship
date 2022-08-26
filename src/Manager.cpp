@@ -16,7 +16,10 @@ m_rocket_shader("shaders/shader.vs", "shaders/shader.fs"), //shader without text
 m_fuel_shader{ "shaders/fuel/fuel_shader.vs", "shaders/fuel/fuel_shader.fs" },
 m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
 m_fuel_shader_tex1 {"textures/fuel/fuel2.jpg", GL_TEXTURE1},
-m_fuelTexNo{2}
+m_fuelTexNo{2},
+//text rendering
+textGen{0, 128}, // from 0 to 127 (all basic characters)
+m_shader_text{ "shaders/font/font_shader.vs", "shaders/font/font_shader.fs" }
 {
 	// for random generator
 	srand(time(NULL));
@@ -50,6 +53,10 @@ m_fuelTexNo{2}
 	m_fuel_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
 	glUniform1i(glGetUniformLocation(m_fuel_shader.get_ID(), "texture0"), 0); // manually
 	glUniform1i(glGetUniformLocation(m_fuel_shader.get_ID(), "texture1"), 1); // manually
+
+	//text rendering shader
+	glm::mat4 projection_text = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+	m_shader_text.setUniformMatrix(m_shader_text.getProjectionMatrixLocation(), projection_text);
 
 	/// game settings
 	//player
@@ -464,6 +471,40 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		m_fuel_shader.setUniformInt("tex", f.m_fuel_texNo);
 		//std::cout << "fuel_tex_no = " << f.m_fuel_texNo << '\n';
 	}
+
+	/// text rendering
+	//position of text and value in screen coordinates
+	int text_x_pos = 630;
+	int value_x_pos = 750;
+	//show score:
+	std::string s_score = "Score: ";
+	//s_score += std::to_string(m_score);
+	textGen.render(m_shader_text, s_score, text_x_pos, 550, .5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	std::string s_score2 = std::to_string(m_score);
+	textGen.render(m_shader_text, s_score2, value_x_pos, 550, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	//show fuel
+	std::string s_fuel = "Fuel: ";
+	//s_fuel += std::to_string(int(m_spaceship.getFuel()));
+	textGen.render(m_shader_text, s_fuel, text_x_pos, 520, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	std::string s_fuel2 = std::to_string(int(m_spaceship.getFuel()));
+	textGen.render(m_shader_text, s_fuel2, value_x_pos, 520, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	//show ammo
+	std::string s_ammo = "Ammo: ";
+	//s_ammo += std::to_string(m_rocketsNo);
+	textGen.render(m_shader_text, s_ammo, text_x_pos, 490, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	std::string s_ammo2 = std::to_string(m_rocketsNo);
+	textGen.render(m_shader_text, s_ammo2, value_x_pos, 490, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	//show base HP
+	std::string s_baseHP = "Base HP: ";
+	//s_baseHP += std::to_string(m_base_HP);
+	textGen.render(m_shader_text, s_baseHP, text_x_pos, 460, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	std::string s_baseHP2 = std::to_string(m_base_HP);
+	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
 
 
 	/// delete objects and check collisions

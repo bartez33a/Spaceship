@@ -7,6 +7,7 @@
 #include "Point.h"
 #include "Spaceship.h"
 #include "Texture.h"
+#include "TextGenerator.h"
 #include <vector>
 #include <list>
 #include <ctime>
@@ -115,4 +116,8 @@ private:
 	Texture m_fuel_shader_tex1;
 	// number of fuel object textures
 	int m_fuelTexNo;
+
+	//text rendering
+	TextGenerator textGen;
+	Shader m_shader_text;
 };

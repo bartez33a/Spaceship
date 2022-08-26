@@ -16,6 +16,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
+
 //my includes
 #include "headers/Shader.h"
 #include "headers/VAO.h"
@@ -51,7 +52,6 @@ Manager *manager_ptr;
 int main()
 {
 	std::cout << "Welcome to Spacecraft game!\n";
-
 	//initialize glfw
 	initialize_glfw();
 	
@@ -87,6 +87,7 @@ int main()
 	//enable depth testing for 3d drawing
 	glEnable(GL_DEPTH_TEST);
 
+
 	//rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -109,6 +110,8 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} //end of render loop
+
+
 
 	//terminate glfw
 	glfwTerminate();
