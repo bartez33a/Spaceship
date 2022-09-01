@@ -30,6 +30,7 @@
 #include "headers/Sphere.h"
 #include "headers/Texture.h"
 #include "headers/Point.h"
+#include "MySQL.h"
 
 // my functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
