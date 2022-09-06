@@ -5,6 +5,7 @@
 - create slide to visualise loading ammo
 - create rocket texture
 - add few more weapons
+- prevent generating meteors in spaceship's position
 - increase size of spaceship?
 - bound movement of spaceship
 - decrease base HP when rocket hits base
