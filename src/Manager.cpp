@@ -19,8 +19,14 @@ m_fuel_shader_tex1 {"textures/fuel/fuel2.jpg", GL_TEXTURE1},
 m_fuelTexNo{2},
 //text rendering
 textGen{0, 128}, // from 0 to 127 (all basic characters)
-m_shader_text{ "shaders/font/font_shader.vs", "shaders/font/font_shader.fs" }
+m_shader_text{ "shaders/font/font_shader.vs", "shaders/font/font_shader.fs" },
+//mySQL database (schema)
+m_mySQL{ "localhost", "root", "", "spaceship"}
 {
+	// hide console
+	ShowWindow(GetConsoleWindow(), SW_HIDE);
+	//at the beginning game is not paused
+	m_pauseGame = false;
 	// for random generator
 	srand(time(NULL));
 
@@ -387,50 +393,9 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 	return m_rockets.erase(it);
 }
 
-// main function of manager. logic of game, input processing, creating and deleting objects
-bool Manager::play(GLFWwindow * window, double deltaTime)
+// function for drawing all objects. this function also moves all objects
+void Manager::m_drawAndMoveAllObjects(double deltaTime)
 {
-	///process keyboard input
-	processInput(window);
-
-	/// create meteors 
-	// new meteor after 1 sec if there is not too many meteors
-	if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
-	{
-		m_meteor_genereate_timer = glfwGetTime();
-		createMeteors();
-	}
-	
-	/// move of spaceship
-	static glm::vec3 spaceship_pos = m_spaceship.getCamPos();
-	//if we have enough fuel, get user input
-	if(m_spaceship.getFuel() > 0)
-	{
-		m_spaceship.Input(window, deltaTime);
-		//if spaceship moved
-		if (m_spaceship.getCamPos() != spaceship_pos)
-		{
-			spaceship_pos = m_spaceship.getCamPos();
-			//decrease fuel
-			m_spaceship.useFuel(0.1);
-			std::cout << "Spaceship fuel: " << m_spaceship.getFuel() << '\n';
-		}
-	}
-
-	// increase loading ammo time
-	m_loadingAmmoTimer += deltaTime;
-	
-	/// set view matrix for each shader -> camera!
-	glm::mat4 mm = glm::mat4(1.0f);
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
-	//update view matrix of shaders 
-	m_base_shader.setUniformMatrix(m_base_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
-	m_background_meteors_shader.setUniformMatrix(m_background_meteors_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
-	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
-	m_rocket_shader.setUniformMatrix(m_rocket_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
-	m_fuel_shader.setUniformMatrix(m_fuel_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
-
-	/// drawing objects
 	//draw background meteors
 	//rotate background meteors
 	m_background_meteors_shader.rotateObjects(0.2 * deltaTime);
@@ -505,12 +470,87 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 
 	std::string s_baseHP2 = std::to_string(m_base_HP);
 	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+}
 
+// function for drawing all objects.
+void Manager::m_drawAllObjects()
+{
+	//draw background meteors
+	//rotate background meteors
+	for (auto &b : m_background_meteors)
+	{
+		b.draw();
+	}
 
-	/// delete objects and check collisions
-	//delete rockets and meteors when covered distance is too far
-	distanceAutoDelete();
+	//draw base
+	//different shader with different textures? you have to bind those textures
+	m_base_texture.bindTexture();
+	m_base.draw();
 
+	// draw meteors
+	//you have to bind all textures otherwise shape will be black
+	m_meteor_shader_tex0.bindTexture();
+	m_meteor_shader_tex1.bindTexture();
+	m_meteor_shader_tex2.bindTexture();
+	for (auto &m : m_meteors)
+	{
+		m.draw_tex();
+	}
+
+	//draw rockets
+	for (auto & r : m_rockets)
+	{
+		r.draw();
+	}
+
+	//draw fuel
+	m_fuel_shader_tex0.bindTexture();
+	m_fuel_shader_tex1.bindTexture();
+	for (auto& f : m_fuel_obj_list)
+	{
+		f.m_fuel_obj.draw();
+		m_fuel_shader.setUniformInt("tex", f.m_fuel_texNo);
+		//std::cout << "fuel_tex_no = " << f.m_fuel_texNo << '\n';
+	}
+
+	/// text rendering
+	//position of text and value in screen coordinates
+	int text_x_pos = 630;
+	int value_x_pos = 750;
+	//show score:
+	std::string s_score = "Score: ";
+	//s_score += std::to_string(m_score);
+	textGen.render(m_shader_text, s_score, text_x_pos, 550, .5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	std::string s_score2 = std::to_string(m_score);
+	textGen.render(m_shader_text, s_score2, value_x_pos, 550, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	//show fuel
+	std::string s_fuel = "Fuel: ";
+	//s_fuel += std::to_string(int(m_spaceship.getFuel()));
+	textGen.render(m_shader_text, s_fuel, text_x_pos, 520, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	std::string s_fuel2 = std::to_string(int(m_spaceship.getFuel()));
+	textGen.render(m_shader_text, s_fuel2, value_x_pos, 520, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	//show ammo
+	std::string s_ammo = "Ammo: ";
+	//s_ammo += std::to_string(m_rocketsNo);
+	textGen.render(m_shader_text, s_ammo, text_x_pos, 490, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	std::string s_ammo2 = std::to_string(m_rocketsNo);
+	textGen.render(m_shader_text, s_ammo2, value_x_pos, 490, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	//show base HP
+	std::string s_baseHP = "Base HP: ";
+	//s_baseHP += std::to_string(m_base_HP);
+	textGen.render(m_shader_text, s_baseHP, text_x_pos, 460, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	std::string s_baseHP2 = std::to_string(m_base_HP);
+	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+}
+
+// function for checking collisions
+void Manager::m_checkAllCollisions()
+{
 	//check collision meteor <--> rocket
 	//for each rocket
 	int i = 0; int j = 0;
@@ -519,7 +559,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		j = 0;
 		i++;
 		bool coll = false; //check collision
-		//for each meteor
+						   //for each meteor
 		for (std::list<Meteor>::iterator it2 = m_meteors.begin(); it2 != m_meteors.end();)
 		{
 			j++;
@@ -535,7 +575,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 				//if you shoot meteor -> you get more ammo
 				m_rocketsNo += 2;
 				coll = true;
-				break; 
+				break;
 			}
 			else
 			{
@@ -548,8 +588,8 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		}
 	} //for loop -> rockets
 
-	//check collision of meteor and base
-	for (std::list<Meteor>::iterator it = m_meteors.begin(); it != m_meteors.end();it++)
+	  //check collision of meteor and base
+	for (std::list<Meteor>::iterator it = m_meteors.begin(); it != m_meteors.end(); it++)
 	{
 		// if rocket and meteor have collision
 		if (checkCollisionCubeSphere(m_base, *it))
@@ -565,8 +605,8 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		}
 	} //for loop -> meteors
 
-	
-	//check if we tank fuel
+
+	  //check if we tank fuel
 	for (auto it = m_fuel_obj_list.begin(); it != m_fuel_obj_list.end();)
 	{
 		if (checkCollisionCubePoint((*it).m_fuel_obj, m_spaceship.getCamPos()))
@@ -581,15 +621,134 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 			it++;
 		}
 	} // tank fuel
+}
 
-	/// check if game is over
-	if (!m_gameOver)
+// function for moving spaceship.
+void Manager::m_moveSpaceship(GLFWwindow * window, double deltaTime)
+{
+	static glm::vec3 spaceship_pos = m_spaceship.getCamPos();
+	//if we have enough fuel, get user input
+	if (m_spaceship.getFuel() > 0)
 	{
-		return true;
+		m_spaceship.Input(window, deltaTime);
+		//if spaceship moved
+		if (m_spaceship.getCamPos() != spaceship_pos)
+		{
+			spaceship_pos = m_spaceship.getCamPos();
+			//decrease fuel
+			m_spaceship.useFuel(0.1);
+			std::cout << "Spaceship fuel: " << m_spaceship.getFuel() << '\n';
+		}
+	}
+}
+
+// function for update shaders matrices.
+void Manager::m_updateShadersMatrices()
+{
+	glm::mat4 mm = glm::mat4(1.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
+	//update view matrix of shaders 
+	m_base_shader.setUniformMatrix(m_base_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_background_meteors_shader.setUniformMatrix(m_background_meteors_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_rocket_shader.setUniformMatrix(m_rocket_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_fuel_shader.setUniformMatrix(m_fuel_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+}
+
+// function for checking if our score is in top 10
+// and if it is, we can put our name and score to database.
+void Manager::checkAndWriteScore()
+{
+	//clear console
+	system("cls");
+	// show console
+	ShowWindow(GetConsoleWindow(), SW_SHOW);
+
+	std::vector<int> best_ten_scores = m_mySQL.getBestScores("spaceship", "best_score");
+	bool is_new_score_best = false;
+	const int top_ten_no = 10;
+	if (top_ten_no > best_ten_scores.size())
+	{
+		// we have empty places, so add this score!
+		if (m_score >= 1)
+		{
+			is_new_score_best = true;
+		}
 	}
 	else
 	{
-		return false;
+		for (int i = 0; i < top_ten_no; i++)
+		{
+			if ((m_score > best_ten_scores[i]) && (m_score >= 1))
+			{
+				is_new_score_best = true;
+				break;
+			}
+		}
+	}
+	
+	if (is_new_score_best)
+	{
+		std::string name;
+		std::cout << "Congrats! Your score is in top 10!\n";
+		std::cout << "Write your name: ";
+		std::cin >> name;
+		std::cout << "\n";
+		m_mySQL.writeScore(name, m_score);
+	}
+}
+
+// main function of manager. logic of game, input processing, creating and deleting objects
+bool Manager::play(GLFWwindow * window, double deltaTime)
+{
+	///process keyboard input
+	processInput(window);
+	if (!m_pauseGame)
+	{
+		//FreeConsole();
+		/// create meteors 
+		// new meteor after 1 sec if there is not too many meteors
+		if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
+		{
+			m_meteor_genereate_timer = glfwGetTime();
+			createMeteors();
+		}
+
+		/// move of spaceship
+		m_moveSpaceship(window, deltaTime);
+
+		// increase loading ammo time
+		m_loadingAmmoTimer += deltaTime;
+
+		/// set view matrix for each shader -> camera!
+		m_updateShadersMatrices();
+
+		/// drawing objects
+		m_drawAndMoveAllObjects(deltaTime);
+		
+		/// delete objects and check collisions
+		//delete rockets and meteors when covered distance is too far
+		distanceAutoDelete();
+		m_checkAllCollisions();
+
+		
+
+		/// check if game is over
+		if (!m_gameOver)
+		{
+			return true;
+		}
+		else // gameOver!
+		{
+			//best score?
+			checkAndWriteScore();
+			return false;
+		}
+	}
+	else // game is paused
+	{
+		/// drawing objects
+		m_drawAllObjects();
 	}
 }
 
@@ -628,23 +787,39 @@ void Manager::mouseInput(double xoffset, double yoffset)
 void Manager::processInput(GLFWwindow * window)
 {
 	static bool space_pushed = false;
+	static bool key_p_pushed = false;
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
-		glfwSetWindowShouldClose(window, true);
+		m_gameOver = true;
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	if (!m_pauseGame)
 	{
-		if (!space_pushed) //positive edge
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			createRocket();
+			if (!space_pushed) //positive edge
+			{
+				createRocket();
+			}
+			space_pushed = true;
 		}
-		space_pushed = true;
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+		{
+			space_pushed = false;
+		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
 	{
-		space_pushed = false;
+		if (!key_p_pushed)
+		{
+			m_pauseGame = !m_pauseGame;
+		}
+		key_p_pushed = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
+	{
+		key_p_pushed = false;
 	}
 }
 

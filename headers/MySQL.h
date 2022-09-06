@@ -6,6 +6,10 @@
 #include <memory>
 #include <exception>
 #include <sstream>
+//for extracting date
+#include <ctime>
+//for expanding month and day to format mm, dd
+#include <iomanip>
 
 class MySQL
 {
@@ -13,7 +17,7 @@ private:
 	//forward declaration
 	struct m_Row;
 public:
-	MySQL( const char* host, const char* user, const char* password, char* database_name);
+	MySQL(const char* m_url, const char* user, const char* password, char* database_name, int port = 3306);
 	~MySQL();
 
 	//functon for checking if database (schema) of name databaseName exists on SQL server
@@ -32,12 +36,18 @@ public:
 	void printAllColumns(const char * databaseName, const char *tableName);
 	//function for printing all records of table tableName in database databaseName
 	void printAllRecords(const char * databaseName, const char *tableName);
+	//this function adds score to table
+	void writeScore(std::string name, int score);
+	//this function returns 10 best scores
+	std::vector<int> getBestScores(const char * databaseName, const char *tableName);
 
 private:
 	//url
 	const char * m_url;
 	//host
 	const char * m_host;
+	//port
+	int m_port;
 	// username
 	const char * m_username;
 	// password

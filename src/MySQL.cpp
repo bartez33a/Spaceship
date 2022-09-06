@@ -1,18 +1,21 @@
-#include "MySQL.h"
+#include "../headers/MySQL.h"
 
-
-
-
-
-
-MySQL::MySQL(const char * host, const char * user, const char * password, char * database_name) : m_host{ host }, m_username{ user }, m_password{ password }, m_database_name{ database_name }, 
-m_driver{sql::mysql::get_driver_instance()}
-//m_connection {m_driver->connect(m_url, m_username, m_password)},
-//m_statement{m_connection->createStatement()}
+MySQL::MySQL(const char* host, const char * user, const char * password, char * database_name, int port) : m_host{ host }, m_username{ user }, m_password{ password }, m_database_name{ database_name },
+m_port{ port }, m_driver{ sql::mysql::get_driver_instance() }
 {
 	try {
+		// connection properties object
+		sql::ConnectOptionsMap connection_properties;
+
+		connection_properties["hostName"] = m_host;
+		connection_properties["userName"] = m_username;
+		connection_properties["password"] = m_password;
+		connection_properties["schema"] = m_database_name; //database == schema
+		connection_properties["port"] = m_port;
+		connection_properties["OPT_RECONNECT"] = true;
+
 		//connect to database
-		m_connection = std::move(std::unique_ptr<sql::Connection>(m_driver->connect(m_url, m_username, m_password)));
+		m_connection = std::move(std::unique_ptr<sql::Connection>(m_driver->connect(connection_properties)));
 		//create statement
 		m_statement = std::move(std::unique_ptr<sql::Statement>(m_connection->createStatement()));
 	}
@@ -186,8 +189,8 @@ void MySQL::addRowIntoTable(const char * databaseName, const char * tableName, m
 		//first use specified database 
 		m_connection->setSchema(databaseName);
 		std::stringstream command;
-		command << "INSERT INTO " << tableName << " (Name, Score, Date) VALUES (" << row.name << ", " <<
-		row.score <<  ", " <<  row.date <<  ")";
+		command << "INSERT INTO " << tableName << " (Name, Score, Date) VALUES ('" << row.name << "', " <<
+		row.score <<  ", '" <<  row.date <<  "')";
 		m_statement->execute(command.str());
 	}
 	catch (std::exception &ex)
@@ -305,6 +308,75 @@ void MySQL::printAllRecords(const char * databaseName, const char * tableName)
 			}
 			std::cout << '\n';
 		}
+	}
+	catch (std::exception &ex)
+	{
+		std::cout << "STD EXCEPTION: " << ex.what() << '\n';
+		getchar();
+	}
+	catch (const char *ex)
+	{
+		std::cout << "EXCEPTION: " << ex << '\n';
+		getchar();
+	}
+}
+
+void MySQL::writeScore(std::string name, int score)
+{
+	try
+	{
+		//get time since NULL
+		std::time_t result = std::time(nullptr);
+		//table to store date
+		char time[50];
+		// struct for timer
+		tm tm2;
+		localtime_s(&tm2, &result);
+
+		std::stringstream ss;
+		ss << tm2.tm_year + 1900 << "-" << std::setw(2) << std::setfill('0') << tm2.tm_mon + 1 << "-" <<
+			std::setw(2) << std::setfill('0') << tm2.tm_mday;
+
+		m_Row row{ name, score, ss.str() };
+		addRowIntoTable("spaceship", "best_score", row);
+
+		//temporary
+		std::cout << ss.str() << '\n';
+	}
+	catch (std::exception &ex)
+	{
+		std::cout << "STD EXCEPTION: " << ex.what() << '\n';
+		getchar();
+	}
+	catch (const char *ex)
+	{
+		std::cout << "EXCEPTION: " << ex << '\n';
+		getchar();
+	}
+
+}
+
+std::vector<int> MySQL::getBestScores(const char * databaseName, const char *tableName)
+{
+	try 
+	{
+		std::vector<int> bestScores;
+		//first use specified database 
+		m_connection->setSchema(databaseName);
+		//then select table
+		std::stringstream command;
+		command << "select Score from " << tableName << " ORDER BY Score DESC";
+		std::unique_ptr< sql::ResultSet > rs(m_statement->executeQuery(command.str()));
+
+
+		while (rs->next())
+		{
+			bestScores.push_back(rs->getInt("Score"));
+			if (bestScores.size() >= 10)
+				break;
+		}
+
+		return bestScores;
 	}
 	catch (std::exception &ex)
 	{

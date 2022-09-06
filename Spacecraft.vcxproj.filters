@@ -72,7 +72,7 @@
     <ClCompile Include="src\TextGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MySQL.cpp">
+    <ClCompile Include="src\MySQL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -128,7 +128,7 @@
     <ClInclude Include="headers\TextGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MySQL.h">
+    <ClInclude Include="headers\MySQL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

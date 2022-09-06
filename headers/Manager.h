@@ -8,10 +8,13 @@
 #include "Spaceship.h"
 #include "Texture.h"
 #include "TextGenerator.h"
+#include "MySQL.h"
 #include <vector>
 #include <list>
 #include <ctime>
 #include <cstdlib>
+// hide and show console
+#include <Windows.h>
 
 // game manager class
 class Manager
@@ -51,6 +54,16 @@ private:
 	//delete meteor function
 	std::list<Meteor>::iterator deleteMeteor(std::list<Meteor>::iterator it);
 	std::list<Rocket>::iterator deleteRocket(std::list<Rocket>::iterator it);
+	//draw and moveall objects
+	void m_drawAndMoveAllObjects(double deltaTime);
+	//only draw all objects
+	void m_drawAllObjects();
+	//check all collisions
+	void m_checkAllCollisions();
+	// move spaceship
+	void m_moveSpaceship(GLFWwindow * window, double deltaTime);
+	// update matrices for shaders
+	void m_updateShadersMatrices();
 
 	
 	/// private variables
@@ -120,4 +133,13 @@ private:
 	//text rendering
 	TextGenerator textGen;
 	Shader m_shader_text;
+
+	//sql database
+	MySQL m_mySQL;
+	// this function checks if m_score is in top 10 scores in database and if it is,
+	// then it insert this score into database
+	void checkAndWriteScore();
+
+	//pauseGame
+	bool m_pauseGame;
 };
