@@ -87,7 +87,7 @@ int main()
 	glfwSetCursorPosCallback(window, mouseInput); //set mouse callback function
 
 	//game manager
-	Manager manager;
+	Manager manager(window);
 	manager_ptr = &manager;
 
 	//enable depth testing for 3d drawing

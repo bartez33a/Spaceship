@@ -20,7 +20,7 @@
 class Manager
 {
 public:
-	Manager();
+	Manager(GLFWwindow* window);
 	~Manager();
 	/// main function
 	bool play(GLFWwindow * window, double deltaTime);
@@ -142,4 +142,8 @@ private:
 
 	//pauseGame
 	bool m_pauseGame;
+
+	//window size
+	int m_win_w;
+	int m_win_h;
 };

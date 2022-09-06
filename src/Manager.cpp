@@ -3,7 +3,7 @@
 unsigned int Manager::m_meteors_ctr = 0;
 
 // constructor for manager
-Manager::Manager() : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/base/base_shader_tex.fs" },
+Manager::Manager(GLFWwindow* window) : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/base/base_shader_tex.fs" },
 m_base_texture{ "textures/base/base.jpg", GL_TEXTURE0 },
 m_base{ &m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1, 1.0f, 1.0f, 0.0f },
 //shader for meteors
@@ -23,6 +23,8 @@ m_shader_text{ "shaders/font/font_shader.vs", "shaders/font/font_shader.fs" },
 //mySQL database (schema)
 m_mySQL{ "localhost", "root", "", "spaceship"}
 {
+	//set window size variables
+	glfwGetWindowSize(window, &m_win_w, &m_win_h);
 	// hide console
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 	//at the beginning game is not paused
@@ -749,6 +751,8 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 	{
 		/// drawing objects
 		m_drawAllObjects();
+		textGen.render(m_shader_text, "Game paused!", (m_win_w/2.0f - 180.0f ) , (m_win_h/2.0f - 10.0f) , 1.1f, glm::vec3(0.9f, 0.2f, 0.0f));
+
 	}
 }
 
