@@ -85,6 +85,13 @@ TextGenerator::TextGenerator(unsigned int ASCII_start, unsigned int ASCII_end, u
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+TextGenerator::TextGenerator(const TextGenerator & tg):
+	Characters{tg.Characters },
+	VAO{tg.VAO},
+	VBO{tg.VBO}
+{
+}
+
 //destructor
 TextGenerator::~TextGenerator()
 {
@@ -93,14 +100,8 @@ TextGenerator::~TextGenerator()
 //this function returns position of bottom left corner and width and height of text frame
 glm::vec4 TextGenerator::render(Shader & s, std::string text, float x, float y, float scale, glm::vec3 color)
 {
-	static bool once = false;
 	float x_start, y_start;
-	if (!once)
-	{
-		x_start = x; 
-		y_start = y;
-		once = true;
-	}
+	x_start = x; y_start = y;
 
 	// activate shader program
 	s.use();
@@ -149,14 +150,43 @@ glm::vec4 TextGenerator::render(Shader & s, std::string text, float x, float y, 
 
 		if (max_y < (ypos + h))
 			max_y = ypos + h;
-		if (ctr == text.size() - 1)
+		if (ctr == (text.size() - 1))
 		{
 			max_x = xpos + w;
-			once = false;
 		}
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return glm::vec4(x_start, y_start, (max_x - x_start), (max_y - y_start));
+}
+
+glm::vec2 TextGenerator::getDimensions(std::string text, float scale)
+{
+	float x = 0;
+	//for remember position of top, right corner of string
+	float max_x = 0.0f;
+	float max_y = 0.0f;
+
+	// iterate through all characters
+	std::string::const_iterator c;
+	int ctr = 0;
+	for (c = text.cbegin(); c != text.cend(); c++, ctr++)
+	{
+		Character ch = Characters[*c];
+		float xpos = x + ch.Bearing.x * scale;
+		float w = ch.Size.x * scale;
+		float h = ch.Size.y * scale;
+		x += (ch.Advance >> 6) * scale; // bitshift by 6 (2^6 = 64)
+
+		if (max_y <  h)
+			max_y = h;
+		if (ctr == (text.size() - 1))
+		{
+			max_x = xpos + w;
+		}
+	}
+	
+	return glm::vec2(max_x, max_y);
+
 }

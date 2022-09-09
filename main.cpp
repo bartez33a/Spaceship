@@ -1,9 +1,8 @@
 // TODO
 // - create rocket texture
-// - show base HP, score, loading ammo time
+// - visualize loading ammo time
 // - add few more weapons
 // - increase size of spaceship?
-// - add option to save score and add database with best scores
 // - add menu e.g. for show best score, exit game
 // - ???
 
@@ -17,16 +16,12 @@
 #include <vector>
 #include <chrono>
 #include <ctime>
-#include <time.h>
-#include <iomanip>
 #include <Windows.h>
 
 //my includes
 #include "headers/Camera.h"
 #include "headers/Rocket.h"
 #include "headers/Manager.h"
-
-
 
 // my functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);

@@ -25,12 +25,15 @@ class TextGenerator
 public:
 	//constructor
 	TextGenerator(unsigned int ASCII_start,unsigned  int ASCII_end, unsigned int size = 48);
+	//copy constructor
+	TextGenerator(const TextGenerator& tg);
 	//destructor
 	~TextGenerator();
 	// function for rendering text in position (x,y) - bottom, left corner
 	// we can change scale and color of text
 	// s -> shader for rendering text
 	glm::vec4 render(Shader &s, std::string text, float x, float y, float scale, glm::vec3 color);
+	glm::vec2 getDimensions(std::string text, float scale);
 
 private:
 	//structure for collecting character texture and metrics

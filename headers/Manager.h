@@ -161,5 +161,7 @@ private:
 	bool m_show_menu = false;
 	//for storing top ten scores
 	std::vector<MySQL::m_Row> topTen;
+	void drawMenu();
+	void m_generateMenu();
 	
 };

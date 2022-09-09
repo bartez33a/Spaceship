@@ -675,7 +675,6 @@ void Manager::m_updateShadersMatrices()
 void Manager::checkAndWriteScore()
 {
 	//clear console
-	//system("cls");
 	// show console
 	ShowWindow(GetConsoleWindow(), SW_SHOW);
 
@@ -707,8 +706,8 @@ void Manager::checkAndWriteScore()
 		bool validName = false;
 		std::string name;
 		do {
+			//clear screen
 			system("cls");
-			std::cout << "name: " << name << "<-\n";
 			std::cout << "Congrats! Your score is in top 10!\n";
 			std::cout << "Write your name: ";
 			std::getline(std::cin, name);
@@ -728,7 +727,109 @@ void Manager::checkAndWriteScore()
 				getchar();
 			}
 		} while (!validName);
+		// send data to database
 		m_mySQL.writeScore(name, m_score);
+	}
+}
+
+void Manager::drawMenu()
+{
+	//get dimensions of text
+	glm::vec2 dim = textGen.getDimensions("Top 10 Scores", 1.0f);	
+	//and render this text in the hotizontal middle of screen (800x600)
+	textGen.render(m_shader_text, "Top 10 Scores", m_win_w/2.0-dim.x/2.0, 550, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
+	
+	//draw TextBoxes with numbers 1...10
+	std::for_each(m_TextBoxesNumbers.begin(), m_TextBoxesNumbers.end(), [](TextBox &box) {box.draw(false); });
+
+	//draw textBoxes with text Name
+	for (auto&n : m_TextBoxesName)
+	{
+		n.draw(false);
+	}
+	//draw TextBoxes with text Score
+	for (auto&s : m_TextBoxesScore)
+	{
+		s.draw(false);
+	}
+	// draw name and score values
+	std::for_each(m_TextBoxesNameValue.begin(), m_TextBoxesNameValue.end(), [](TextBox &box) {box.draw(false); });
+	std::for_each(m_TextBoxesScoreValue.begin(), m_TextBoxesScoreValue.end(), [](TextBox &box) {box.draw(false); });
+}
+
+void Manager::m_generateMenu()
+{
+	// update top ten scores vector
+	topTen = m_mySQL.getTopTen("spaceship", "best_score");
+	const float y_top = 500;
+	float y = y_top;
+
+	float x_number = 50.0f;
+	float x_name = 0.0f;
+	float x_nameValue = 0.0f;
+	float x_score = 0.0f;
+	float x_scoreValue = 0.0f;
+
+	// render numbers 1...10
+	for (int i = 0; i < topTen.size(); i++)
+	{
+		m_TextBoxesNumbers[i].updateTextBox(std::to_string(i + 1), x_number, y, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+		glm::vec4 act_pos = m_TextBoxesNumbers[i].getPosition();
+		if (x_name < act_pos.x + act_pos.z)
+		{
+			x_name = act_pos.x + act_pos.z;
+		}
+
+		y -= 50;
+	}
+	// render "name"
+	y = y_top;
+	x_name += 30; //spacing
+	for (int i = 0; i < topTen.size(); i++)
+	{
+		m_TextBoxesName[i].updateTextBox("Name", x_name, y, 1.0f, glm::vec3(0.0f, 0.8f, 0.0f));
+		glm::vec4 act_pos = m_TextBoxesName[i].getPosition();
+		if (x_nameValue < act_pos.x + act_pos.z)
+		{
+			x_nameValue = act_pos.x + act_pos.z;
+		}
+		y -= 50;
+	}
+	// render name value
+	y = y_top;
+	x_nameValue += 20; // spacing
+	for (int i = 0; i < topTen.size(); i++)
+	{
+		m_TextBoxesNameValue[i].updateTextBox(topTen[i].name, x_nameValue, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::vec4 act_pos = m_TextBoxesNameValue[i].getPosition();
+		if (x_score < act_pos.x + act_pos.z)
+		{
+			x_score = act_pos.x + act_pos.z;
+		}
+		y -= 50;
+	}
+
+	// render "score"
+	y = y_top;
+	x_score += 50; // spacing
+	for (int i = 0; i < topTen.size(); i++)
+	{
+		m_TextBoxesScore[i].updateTextBox("Score", x_score, y, 1.0f, glm::vec3(0.0f, 0.8f, 0.0f));
+		glm::vec4 act_pos = m_TextBoxesScore[i].getPosition();
+		if (x_scoreValue < act_pos.x + act_pos.z)
+		{
+			x_scoreValue = act_pos.x + act_pos.z;
+		}
+		y -= 50;
+	}
+	//score value
+	y = y_top;
+	y = y_top;
+	x_scoreValue += 20; // spacing
+	for (int i = 0; i < topTen.size(); i++)
+	{
+		m_TextBoxesScoreValue[i].updateTextBox(std::to_string(topTen[i].score), x_scoreValue, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		y -= 50;
 	}
 }
 
@@ -779,21 +880,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 	} 
 	else //show menu independently on game state (paused or not)
 	{
-		//draw textBoxes with text Name
-		for (auto&n : m_TextBoxesName)
-		{
-			n.draw();
-		}
-		//draw TextBoxes with text Score
-		for (auto&s : m_TextBoxesScore)
-		{
-			s.draw();
-		}
-		// draw name and score values
-		std::for_each(m_TextBoxesNameValue.begin(), m_TextBoxesNameValue.end(), [](TextBox &box) {box.draw(); });
-		std::for_each(m_TextBoxesScoreValue.begin(), m_TextBoxesScoreValue.end(), [](TextBox &box) {box.draw(); });
-		
-		std::for_each(m_TextBoxesNumbers.begin(), m_TextBoxesNumbers.end(), [](TextBox &box) {box.draw(); });
+		drawMenu();
 	}
 
 	
@@ -905,78 +992,9 @@ void Manager::processInput(GLFWwindow * window)
 		{
 			//show menu
 			m_show_menu = !m_show_menu;
-			// update top ten scores vector
-			topTen = m_mySQL.getTopTen("spaceship", "best_score");
-			const float y_top = 550;
-			float y = y_top;
-
-			float x_number = 50.0f;
-			float x_name = 0.0f;
-			float x_nameValue = 0.0f;
-			float x_score = 0.0f;
-			float x_scoreValue = 0.0f;
-
-			// render numbers 1...10
-			for (int i = 0; i < topTen.size(); i++)
-			{
-				m_TextBoxesNumbers[i].updateTextBox(std::to_string(i+1), x_number, y, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-				glm::vec4 act_pos = m_TextBoxesNumbers[i].getPosition();
-				if (x_name < act_pos.x + act_pos.z)
-				{
-					x_name = act_pos.x + act_pos.z;
-				}
-
-				y -= 50;
-			}
-			// render "name"
-			y = y_top;
-			x_name += 30; //spacing
-			for (int i = 0; i < topTen.size(); i++)
-			{
-				m_TextBoxesName[i].updateTextBox("Name", x_name, y,1.0f, glm::vec3(0.0f, 0.8f, 0.0f));
-				glm::vec4 act_pos = m_TextBoxesName[i].getPosition();
-				if (x_nameValue < act_pos.x + act_pos.z)
-				{
-					x_nameValue = act_pos.x + act_pos.z;
-				}
-				y -= 50;
-			}
-			// render name value
-			y = y_top;
-			x_nameValue += 20; // spacing
-			for (int i = 0; i < topTen.size(); i++)
-			{
-				m_TextBoxesNameValue[i].updateTextBox(topTen[i].name, x_nameValue, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-				glm::vec4 act_pos = m_TextBoxesNameValue[i].getPosition();
-				if (x_score < act_pos.x + act_pos.z)
-				{
-					x_score = act_pos.x + act_pos.z;
-				}
-				y -= 50;
-			}
 			
-			// render "score"
-			y = y_top;
-			x_score += 50; // spacing
-			for (int i = 0; i < topTen.size(); i++)
-			{
-				m_TextBoxesScore[i].updateTextBox("Score", x_score, y, 1.0f, glm::vec3(0.0f, 0.8f, 0.0f));
-				glm::vec4 act_pos = m_TextBoxesScore[i].getPosition();
-				if (x_scoreValue < act_pos.x + act_pos.z)
-				{
-					x_scoreValue = act_pos.x + act_pos.z;
-				}
-				y -= 50;
-			}			
-			//score value
-			y = y_top;
-			y = y_top;
-			x_scoreValue += 20; // spacing
-			for (int i = 0; i < topTen.size(); i++)
-			{
-				m_TextBoxesScoreValue[i].updateTextBox(std::to_string(topTen[i].score), x_scoreValue, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-				y -= 50;
-			}
+			//generate menu - show top 10
+			m_generateMenu();
 
 			//and if game is not pasued, pause game OR if menu is hidden and game is paused, unpause game
 			if (m_pauseGame ^ m_show_menu)
