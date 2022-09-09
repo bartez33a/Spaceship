@@ -8,6 +8,7 @@
 #include "Spaceship.h"
 #include "Texture.h"
 #include "TextGenerator.h"
+#include "TextBox.h"
 #include "MySQL.h"
 #include <vector>
 #include <list>
@@ -15,6 +16,7 @@
 #include <cstdlib>
 // hide and show console
 #include <Windows.h>
+#include <algorithm>
 
 // game manager class
 class Manager
@@ -134,6 +136,14 @@ private:
 	TextGenerator textGen;
 	Shader m_shader_text;
 
+	//TextBox
+	//text rendering
+	TextGenerator m_textGen_TextBox;
+	Shader m_shader_textBoxRect; //shader before TextBox objects!
+	TextBox tb_empty;
+	std::vector<TextBox> m_TextBoxesNumbers;
+	std::vector<TextBox> m_TextBoxesName, m_TextBoxesNameValue, m_TextBoxesScore, m_TextBoxesScoreValue;
+
 	//sql database
 	MySQL m_mySQL;
 	// this function checks if m_score is in top 10 scores in database and if it is,
@@ -146,4 +156,10 @@ private:
 	//window size
 	int m_win_w;
 	int m_win_h;
+
+	//menu
+	bool m_show_menu = false;
+	//for storing top ten scores
+	std::vector<MySQL::m_Row> topTen;
+	
 };

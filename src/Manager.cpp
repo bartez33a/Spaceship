@@ -15,20 +15,31 @@ m_meteor_shader_tex2{ "textures/meteors/meteor2.png", GL_TEXTURE2 },
 m_rocket_shader("shaders/shader.vs", "shaders/shader.fs"), //shader without texture
 m_fuel_shader{ "shaders/fuel/fuel_shader.vs", "shaders/fuel/fuel_shader.fs" },
 m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
-m_fuel_shader_tex1 {"textures/fuel/fuel2.jpg", GL_TEXTURE1},
-m_fuelTexNo{2},
+m_fuel_shader_tex1{ "textures/fuel/fuel2.jpg", GL_TEXTURE1 },
+m_fuelTexNo{ 2 },
 //text rendering
-textGen{0, 128}, // from 0 to 127 (all basic characters)
+textGen{ 0, 128 }, // from 0 to 127 (all basic characters)
+m_textGen_TextBox{0 , 128, 30},
 m_shader_text{ "shaders/font/font_shader.vs", "shaders/font/font_shader.fs" },
+//textBox
+tb_empty{ m_textGen_TextBox, m_shader_text, m_shader_textBoxRect, "", 100, 150, 1.0f, glm::vec3(0.0f, 1.0f, 0.2f) },
+m_TextBoxesNumbers(15, tb_empty),
+m_TextBoxesName(10, tb_empty),
+m_TextBoxesNameValue(10, tb_empty),
+m_TextBoxesScore(10, tb_empty),
+m_TextBoxesScoreValue(10, tb_empty),
+m_shader_textBoxRect{ "shaders/textBox/rectangle/rectangleShader.vs", "shaders/textBox/rectangle/rectangleShader.fs" },
 //mySQL database (schema)
 m_mySQL{ "localhost", "root", "", "spaceship"}
 {
 	//set window size variables
 	glfwGetWindowSize(window, &m_win_w, &m_win_h);
 	// hide console
-	ShowWindow(GetConsoleWindow(), SW_HIDE);
+	//ShowWindow(GetConsoleWindow(), SW_HIDE);
 	//at the beginning game is not paused
 	m_pauseGame = false;
+	//and menu is not turn on
+	m_show_menu = false;
 	// for random generator
 	srand(time(NULL));
 
@@ -65,6 +76,8 @@ m_mySQL{ "localhost", "root", "", "spaceship"}
 	//text rendering shader
 	glm::mat4 projection_text = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
 	m_shader_text.setUniformMatrix(m_shader_text.getProjectionMatrixLocation(), projection_text);
+	//ortographic projection for TextBox->rectangle
+	m_shader_textBoxRect.setUniformMatrix(m_shader_textBoxRect.getProjectionMatrixLocation(), projection_text);
 
 	/// game settings
 	//player
@@ -662,7 +675,7 @@ void Manager::m_updateShadersMatrices()
 void Manager::checkAndWriteScore()
 {
 	//clear console
-	system("cls");
+	//system("cls");
 	// show console
 	ShowWindow(GetConsoleWindow(), SW_SHOW);
 
@@ -691,68 +704,109 @@ void Manager::checkAndWriteScore()
 	
 	if (is_new_score_best)
 	{
+		bool validName = false;
 		std::string name;
-		std::cout << "Congrats! Your score is in top 10!\n";
-		std::cout << "Write your name: ";
-		std::cin >> name;
-		std::cout << "\n";
+		do {
+			system("cls");
+			std::cout << "name: " << name << "<-\n";
+			std::cout << "Congrats! Your score is in top 10!\n";
+			std::cout << "Write your name: ";
+			std::getline(std::cin, name);
+			std::cout << "\n";
+			validName = (name.size() < 20) && (name.size() > 0);
+			
+			if (!validName)
+			{
+				if (name.size() != 0)
+				{
+					std::cout << "Name is too long!\nMax length of Name is 20 characters!\nTry Again ;)";
+				}
+				else
+				{
+					std::cout << "Name cannot be empty! Write something ;)";
+				}
+				getchar();
+			}
+		} while (!validName);
 		m_mySQL.writeScore(name, m_score);
 	}
 }
+
 
 // main function of manager. logic of game, input processing, creating and deleting objects
 bool Manager::play(GLFWwindow * window, double deltaTime)
 {
 	///process keyboard input
 	processInput(window);
-	if (!m_pauseGame)
+	// if game is not paused and menu is hidden
+	if (!m_show_menu)
 	{
-		//FreeConsole();
-		/// create meteors 
-		// new meteor after 1 sec if there is not too many meteors
-		if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
+		if (!m_pauseGame)
 		{
-			m_meteor_genereate_timer = glfwGetTime();
-			createMeteors();
+			//FreeConsole();
+			/// create meteors 
+			// new meteor after 1 sec if there is not too many meteors
+			if ((glfwGetTime() - m_meteor_genereate_timer) > 1.0)
+			{
+				m_meteor_genereate_timer = glfwGetTime();
+				createMeteors();
+			}
+
+			/// move of spaceship
+			m_moveSpaceship(window, deltaTime);
+
+			// increase loading ammo time
+			m_loadingAmmoTimer += deltaTime;
+
+			/// set view matrix for each shader -> camera!
+			m_updateShadersMatrices();
+
+			/// drawing objects
+			m_drawAndMoveAllObjects(deltaTime);
+
+			/// delete objects and check collisions
+			//delete rockets and meteors when covered distance is too far
+			distanceAutoDelete();
+			m_checkAllCollisions();
+
 		}
-
-		/// move of spaceship
-		m_moveSpaceship(window, deltaTime);
-
-		// increase loading ammo time
-		m_loadingAmmoTimer += deltaTime;
-
-		/// set view matrix for each shader -> camera!
-		m_updateShadersMatrices();
-
-		/// drawing objects
-		m_drawAndMoveAllObjects(deltaTime);
+		else // game is paused and menu is hidden
+		{
+			/// drawing objects
+			m_drawAllObjects();
+			glm::vec4 aaa = textGen.render(m_shader_text, "Game paused!", (m_win_w / 2.0f - 180.0f), (m_win_h / 2.0f - 10.0f), 1.1f, glm::vec3(0.9f, 0.2f, 0.0f));
+		}
+	} 
+	else //show menu independently on game state (paused or not)
+	{
+		//draw textBoxes with text Name
+		for (auto&n : m_TextBoxesName)
+		{
+			n.draw();
+		}
+		//draw TextBoxes with text Score
+		for (auto&s : m_TextBoxesScore)
+		{
+			s.draw();
+		}
+		// draw name and score values
+		std::for_each(m_TextBoxesNameValue.begin(), m_TextBoxesNameValue.end(), [](TextBox &box) {box.draw(); });
+		std::for_each(m_TextBoxesScoreValue.begin(), m_TextBoxesScoreValue.end(), [](TextBox &box) {box.draw(); });
 		
-		/// delete objects and check collisions
-		//delete rockets and meteors when covered distance is too far
-		distanceAutoDelete();
-		m_checkAllCollisions();
-
-		
-
-		/// check if game is over
-		if (!m_gameOver)
-		{
-			return true;
-		}
-		else // gameOver!
-		{
-			//best score?
-			checkAndWriteScore();
-			return false;
-		}
+		std::for_each(m_TextBoxesNumbers.begin(), m_TextBoxesNumbers.end(), [](TextBox &box) {box.draw(); });
 	}
-	else // game is paused
-	{
-		/// drawing objects
-		m_drawAllObjects();
-		textGen.render(m_shader_text, "Game paused!", (m_win_w/2.0f - 180.0f ) , (m_win_h/2.0f - 10.0f) , 1.1f, glm::vec3(0.9f, 0.2f, 0.0f));
 
+	
+	/// check if game is over
+	if (!m_gameOver)
+	{
+		return true;
+	}
+	else // gameOver!
+	{
+		//best score?
+		checkAndWriteScore();
+		return false;
 	}
 }
 
@@ -777,13 +831,16 @@ glm::mat4 Manager::getViewMatrix() const
 // mouse input callback
 void Manager::mouseInput(double xoffset, double yoffset)
 {
-	//if spaceship has enough fuel
-	if (m_spaceship.getFuel() > 0)
+	if (!m_pauseGame)
 	{
-		// process mouse input -> so we can rotate spaceship
-		m_spaceship.mouseInput(xoffset, yoffset);
-		// and decrease amount of fuel
-		m_spaceship.useFuel(0.1);
+		//if spaceship has enough fuel
+		if (m_spaceship.getFuel() > 0)
+		{
+			// process mouse input -> so we can rotate spaceship
+			m_spaceship.mouseInput(xoffset, yoffset);
+			// and decrease amount of fuel
+			m_spaceship.useFuel(0.1);
+		}
 	}
 }
 
@@ -792,7 +849,10 @@ void Manager::processInput(GLFWwindow * window)
 {
 	static bool space_pushed = false;
 	static bool key_p_pushed = false;
+	static bool key_m_pushed = false;
 
+	//
+	//	** KEY ESC	**
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		m_gameOver = true;
@@ -800,6 +860,8 @@ void Manager::processInput(GLFWwindow * window)
 
 	if (!m_pauseGame)
 	{
+		//
+		//	** SPACE	**
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
 			if (!space_pushed) //positive edge
@@ -813,17 +875,122 @@ void Manager::processInput(GLFWwindow * window)
 			space_pushed = false;
 		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
-	{
-		if (!key_p_pushed)
+	//
+	//	** KEY P	**
+	
+		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
 		{
-			m_pauseGame = !m_pauseGame;
+			if (!key_p_pushed)
+			{
+				//make sure we are not in menu, because if we are, we can be in menu and unpause game!
+				if (!m_show_menu)
+				{
+					m_pauseGame = !m_pauseGame;
+				}
+				std::cout << "P pushed, m_show_menu: " << m_show_menu << ", m_pause_game = " << m_pauseGame << '\n';
+
+			}
+			key_p_pushed = true;
 		}
-		key_p_pushed = true;
-	}
-	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
+		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
+		{
+			key_p_pushed = false;
+		}
+	//
+	//	** KEY M	**
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
 	{
-		key_p_pushed = false;
+		//if raise edge on key M
+		if (!key_m_pushed)
+		{
+			//show menu
+			m_show_menu = !m_show_menu;
+			// update top ten scores vector
+			topTen = m_mySQL.getTopTen("spaceship", "best_score");
+			const float y_top = 550;
+			float y = y_top;
+
+			float x_number = 50.0f;
+			float x_name = 0.0f;
+			float x_nameValue = 0.0f;
+			float x_score = 0.0f;
+			float x_scoreValue = 0.0f;
+
+			// render numbers 1...10
+			for (int i = 0; i < topTen.size(); i++)
+			{
+				m_TextBoxesNumbers[i].updateTextBox(std::to_string(i+1), x_number, y, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+				glm::vec4 act_pos = m_TextBoxesNumbers[i].getPosition();
+				if (x_name < act_pos.x + act_pos.z)
+				{
+					x_name = act_pos.x + act_pos.z;
+				}
+
+				y -= 50;
+			}
+			// render "name"
+			y = y_top;
+			x_name += 30; //spacing
+			for (int i = 0; i < topTen.size(); i++)
+			{
+				m_TextBoxesName[i].updateTextBox("Name", x_name, y,1.0f, glm::vec3(0.0f, 0.8f, 0.0f));
+				glm::vec4 act_pos = m_TextBoxesName[i].getPosition();
+				if (x_nameValue < act_pos.x + act_pos.z)
+				{
+					x_nameValue = act_pos.x + act_pos.z;
+				}
+				y -= 50;
+			}
+			// render name value
+			y = y_top;
+			x_nameValue += 20; // spacing
+			for (int i = 0; i < topTen.size(); i++)
+			{
+				m_TextBoxesNameValue[i].updateTextBox(topTen[i].name, x_nameValue, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::vec4 act_pos = m_TextBoxesNameValue[i].getPosition();
+				if (x_score < act_pos.x + act_pos.z)
+				{
+					x_score = act_pos.x + act_pos.z;
+				}
+				y -= 50;
+			}
+			
+			// render "score"
+			y = y_top;
+			x_score += 50; // spacing
+			for (int i = 0; i < topTen.size(); i++)
+			{
+				m_TextBoxesScore[i].updateTextBox("Score", x_score, y, 1.0f, glm::vec3(0.0f, 0.8f, 0.0f));
+				glm::vec4 act_pos = m_TextBoxesScore[i].getPosition();
+				if (x_scoreValue < act_pos.x + act_pos.z)
+				{
+					x_scoreValue = act_pos.x + act_pos.z;
+				}
+				y -= 50;
+			}			
+			//score value
+			y = y_top;
+			y = y_top;
+			x_scoreValue += 20; // spacing
+			for (int i = 0; i < topTen.size(); i++)
+			{
+				m_TextBoxesScoreValue[i].updateTextBox(std::to_string(topTen[i].score), x_scoreValue, y, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+				y -= 50;
+			}
+
+			//and if game is not pasued, pause game OR if menu is hidden and game is paused, unpause game
+			if (m_pauseGame ^ m_show_menu)
+			{
+				m_pauseGame = !m_pauseGame;
+			}
+
+			std::cout << "M pushed, m_show_menu: " << m_show_menu << ", m_pause_game = " << m_pauseGame << '\n';
+		}
+		key_m_pushed = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_RELEASE)
+	{
+		key_m_pushed = false;
 	}
 }
 

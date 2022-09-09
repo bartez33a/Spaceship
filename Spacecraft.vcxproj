@@ -145,6 +145,7 @@
     <ClCompile Include="src\Spaceship.cpp" />
     <ClCompile Include="src\Sphere.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
+    <ClCompile Include="src\TextBox.cpp" />
     <ClCompile Include="src\TextGenerator.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\VAO.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="headers\Spaceship.h" />
     <ClInclude Include="headers\Sphere.h" />
     <ClInclude Include="headers\stb_image.h" />
+    <ClInclude Include="headers\TextBox.h" />
     <ClInclude Include="headers\TextGenerator.h" />
     <ClInclude Include="headers\Texture.h" />
     <ClInclude Include="headers\VAO.h" />

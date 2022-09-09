@@ -21,21 +21,12 @@
 #include <iomanip>
 #include <Windows.h>
 
-
 //my includes
-#include "headers/Shader.h"
-#include "headers/VAO.h"
-#include "headers/VBO.h"
-#include "headers/Cube.h"
-#include "headers/stb_image.h"
 #include "headers/Camera.h"
-#include "headers/meteor.h"
 #include "headers/Rocket.h"
 #include "headers/Manager.h"
-#include "headers/Sphere.h"
-#include "headers/Texture.h"
-#include "headers/Point.h"
-#include "headers/MySQL.h"
+
+
 
 // my functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -93,7 +84,6 @@ int main()
 	//enable depth testing for 3d drawing
 	glEnable(GL_DEPTH_TEST);
 
-
 	//rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -106,19 +96,15 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 		if (!manager.play(window, deltaTime))
 		{
 			//gameOver
 			glfwSetWindowShouldClose(window, true);
 		}
 
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	} //end of render loop
-
-	getchar();
 
 	//terminate glfw
 	glfwTerminate();
@@ -143,6 +129,7 @@ int main()
 	std::cout << time
 		<< result << " seconds since the Epoch\n";
 	//wait for key
+	getchar();
 	getchar();
 
 	return EXIT_SUCCESS;

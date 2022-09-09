@@ -13,12 +13,13 @@
 
 class MySQL
 {
-private:
-	//forward declaration
-	struct m_Row;
+
 public:
 	MySQL(const char* m_url, const char* user, const char* password, char* database_name, int port = 3306);
 	~MySQL();
+	//forward declaration
+	struct m_Row;
+
 
 	//functon for checking if database (schema) of name databaseName exists on SQL server
 	bool checkIfDatabaseExists(const char *databaseName);
@@ -40,6 +41,7 @@ public:
 	void writeScore(std::string name, int score);
 	//this function returns 10 best scores
 	std::vector<int> getBestScores(const char * databaseName, const char *tableName);
+	std::vector<m_Row> getTopTen(const char * databaseName, const char *tableName);
 
 private:
 	//url
@@ -60,7 +62,7 @@ private:
 	std::unique_ptr< sql::Connection> m_connection;
 	//statement object for executing sql statements
 	std::unique_ptr< sql::Statement > m_statement;
-
+public:
 	struct m_Row {
 		std::string name;
 		int score;

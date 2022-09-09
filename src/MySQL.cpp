@@ -382,10 +382,57 @@ std::vector<int> MySQL::getBestScores(const char * databaseName, const char *tab
 	{
 		std::cout << "STD EXCEPTION: " << ex.what() << '\n';
 		getchar();
+		exit(EXIT_FAILURE);
 	}
 	catch (const char *ex)
 	{
 		std::cout << "EXCEPTION: " << ex << '\n';
 		getchar();
+		exit(EXIT_FAILURE);
+	}
+}
+
+//this function reads top ten best scores and names and returns it as vecotr of MySQL::m_Row objects
+std::vector<MySQL::m_Row> MySQL::getTopTen(const char * databaseName, const char *tableName)
+{
+	try
+	{
+		std::vector<m_Row> topTen;
+
+		m_Row data;
+
+		//first use specified database 
+		m_connection->setSchema(databaseName);
+		//then select table
+		std::stringstream command;
+		command << "select Name, Score  from " << tableName << " ORDER BY Score DESC";
+		std::unique_ptr< sql::ResultSet > rs(m_statement->executeQuery(command.str()));
+
+		while (rs->next())
+		{
+			data.name = rs->getString("Name");
+			data.score = rs->getInt("Score");
+			topTen.emplace_back(data);
+
+			//read only ten best scores
+			if (topTen.size() >= 10)
+			{
+				break;
+			}
+		}
+
+		return topTen;
+	}
+	catch (std::exception &ex)
+	{
+		std::cout << "STD EXCEPTION: " << ex.what() << '\n';
+		getchar();
+		exit(EXIT_FAILURE);
+	}
+	catch (const char *ex)
+	{
+		std::cout << "EXCEPTION: " << ex << '\n';
+		getchar();
+		exit(EXIT_FAILURE);
 	}
 }

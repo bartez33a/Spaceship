@@ -1,8 +1,11 @@
 #include "..\headers\TextGenerator.h"
 
 
-
-TextGenerator::TextGenerator(unsigned int ASCII_start, unsigned int ASCII_end)
+// text generator contructor:
+// ASCII_start -> ASCII code to start creating textures of characters
+// ASCII_start -> ASCII code to end creating textures of characters
+// size -> size of characters [px]
+TextGenerator::TextGenerator(unsigned int ASCII_start, unsigned int ASCII_end, unsigned int size)
 {
 	// freeType library
 	FT_Library ft;
@@ -20,7 +23,7 @@ TextGenerator::TextGenerator(unsigned int ASCII_start, unsigned int ASCII_end)
 
 	//if you loaded face
 	//change size of font
-	FT_Set_Pixel_Sizes(face, 0, 48);
+	FT_Set_Pixel_Sizes(face, 0, size);
 
 	// no byte-alignment restriction
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 
@@ -82,13 +85,23 @@ TextGenerator::TextGenerator(unsigned int ASCII_start, unsigned int ASCII_end)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-
+//destructor
 TextGenerator::~TextGenerator()
 {
 }
 
-void TextGenerator::render(Shader & s, std::string text, float x, float y, float scale, glm::vec3 color)
+//this function returns position of bottom left corner and width and height of text frame
+glm::vec4 TextGenerator::render(Shader & s, std::string text, float x, float y, float scale, glm::vec3 color)
 {
+	static bool once = false;
+	float x_start, y_start;
+	if (!once)
+	{
+		x_start = x; 
+		y_start = y;
+		once = true;
+	}
+
 	// activate shader program
 	s.use();
 	// set uniforms
@@ -99,9 +112,15 @@ void TextGenerator::render(Shader & s, std::string text, float x, float y, float
 
 	//binf VAO
 	glBindVertexArray(VAO);
+
+	//for remember position of top, right corner of string
+	float max_x = 0.0f;
+	float max_y = 0.0f;
+
 	// iterate through all characters
 	std::string::const_iterator c;
-	for (c = text.begin(); c != text.end(); c++)
+	int ctr = 0;
+	for (c = text.begin(); c != text.end(); c++, ctr++)
 	{
 		Character ch = Characters[*c];
 		float xpos = x + ch.Bearing.x * scale;
@@ -127,7 +146,17 @@ void TextGenerator::render(Shader & s, std::string text, float x, float y, float
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		// advance cursors for next glyph (advance is 1/64 pixels)
 		x += (ch.Advance >> 6) * scale; // bitshift by 6 (2^6 = 64)
+
+		if (max_y < (ypos + h))
+			max_y = ypos + h;
+		if (ctr == text.size() - 1)
+		{
+			max_x = xpos + w;
+			once = false;
+		}
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return glm::vec4(x_start, y_start, (max_x - x_start), (max_y - y_start));
 }

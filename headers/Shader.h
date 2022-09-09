@@ -18,6 +18,8 @@ public:
 	Shader() = delete;
 	//destructor
 	~Shader();
+	//move constructor
+	//Shader(Shader &&) = delete;
 	//use shader program
 	void use(); 
 	// get shader ID
