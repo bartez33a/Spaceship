@@ -10,10 +10,10 @@ We can get score by destroying meteors.
 When specified number of meteors hit our base - we lose and game is over.
 We can use our mouse to rotate spaceship and WASD keys to move spaceship.
 
-When we press SPACE, spaceship shoot with rocket.
-When we press ESC, we leave game,
-When we press P - we pause game
-When we press M - we can see top 10 scores from MySQL database (only if we are connected to database)
+- When we press SPACE, spaceship shoot with rocket.
+- When we press ESC, we leave game,
+- When we press P - we pause game
+- When we press M - we can see top 10 scores from MySQL database (only if we are connected to database)
 
 ## Screenshots
 ![image](https://user-images.githubusercontent.com/107147109/186295857-3c6a6ddf-d5fe-4e01-a26d-a578ae2776be.png)
