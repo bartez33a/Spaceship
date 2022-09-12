@@ -35,7 +35,7 @@ m_mySQL{ "localhost", "root", "", "spaceship"}
 	//set window size variables
 	glfwGetWindowSize(window, &m_win_w, &m_win_h);
 	// hide console
-	//ShowWindow(GetConsoleWindow(), SW_HIDE);
+	ShowWindow(GetConsoleWindow(), SW_HIDE);
 	//at the beginning game is not paused
 	m_pauseGame = false;
 	//and menu is not turn on
@@ -603,14 +603,14 @@ void Manager::m_checkAllCollisions()
 		}
 	} //for loop -> rockets
 
-	  //check collision of meteor and base
+	//check collision of meteor and base
 	for (std::list<Meteor>::iterator it = m_meteors.begin(); it != m_meteors.end(); it++)
 	{
 		// if rocket and meteor have collision
 		if (checkCollisionCubeSphere(m_base, *it))
 		{
 			it = deleteMeteor(it); //returns iterator to next element
-			std::cout << "meteor hits base!\n";
+			//std::cout << "meteor hits base!\n";
 			m_base_HP--;
 
 			if (m_base_HP <= 0)
@@ -629,7 +629,7 @@ void Manager::m_checkAllCollisions()
 			//collision
 			it = m_fuel_obj_list.erase(it);
 			m_spaceship.addFuel(5.0f);
-			std::cout << "FUEL TANKED!\n";
+			//std::cout << "FUEL TANKED!\n";
 		}
 		else
 		{
@@ -869,7 +869,6 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 			//delete rockets and meteors when covered distance is too far
 			distanceAutoDelete();
 			m_checkAllCollisions();
-
 		}
 		else // game is paused and menu is hidden
 		{
@@ -880,7 +879,7 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 	} 
 	else //show menu independently on game state (paused or not)
 	{
-		drawMenu();
+		drawMenu();	
 	}
 
 	
@@ -891,8 +890,13 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 	}
 	else // gameOver!
 	{
-		//best score?
-		checkAndWriteScore();
+		//if there is connection with database
+		if (m_mySQL.isDatabaseConnected())
+		{
+			//check if score is in top 10
+			checkAndWriteScore();
+
+		}
 		return false;
 	}
 }
@@ -974,8 +978,6 @@ void Manager::processInput(GLFWwindow * window)
 				{
 					m_pauseGame = !m_pauseGame;
 				}
-				std::cout << "P pushed, m_show_menu: " << m_show_menu << ", m_pause_game = " << m_pauseGame << '\n';
-
 			}
 			key_p_pushed = true;
 		}
@@ -993,8 +995,12 @@ void Manager::processInput(GLFWwindow * window)
 			//show menu
 			m_show_menu = !m_show_menu;
 			
-			//generate menu - show top 10
-			m_generateMenu();
+			//if there is connection with database
+			if (m_mySQL.isDatabaseConnected())
+			{
+				//generate menu - show top 10
+				m_generateMenu();
+			}
 
 			//and if game is not pasued, pause game OR if menu is hidden and game is paused, unpause game
 			if (m_pauseGame ^ m_show_menu)
@@ -1002,7 +1008,6 @@ void Manager::processInput(GLFWwindow * window)
 				m_pauseGame = !m_pauseGame;
 			}
 
-			std::cout << "M pushed, m_show_menu: " << m_show_menu << ", m_pause_game = " << m_pauseGame << '\n';
 		}
 		key_m_pushed = true;
 	}

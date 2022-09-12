@@ -18,18 +18,85 @@ m_port{ port }, m_driver{ sql::mysql::get_driver_instance() }
 		m_connection = std::move(std::unique_ptr<sql::Connection>(m_driver->connect(connection_properties)));
 		//create statement
 		m_statement = std::move(std::unique_ptr<sql::Statement>(m_connection->createStatement()));
+		//try block is ok 
+		m_IsDatabaseConnected = true;
 	}
 	catch (std::exception &ex)
 	{
+		//clear console
+		system("cls");
+		//show console
+		ShowWindow(GetConsoleWindow(), SW_SHOW);
+		std::cout << "Unable to connect to database!\n";
 		std::cout << "STD EXCEPTION: " << ex.what() << '\n';
+		char c;
+		while (true)
+		{
+			std::cout << "Do you want to play offline? Your score wont be saved!\n";
+			std::cout << "You can try again or play without database t\\y\\n: ";
+			std::cin >> c;
+
+			if (c == 'y' || c == 'n' || c == 't')
+			{
+				if (c == 'y')
+				{
+					m_IsDatabaseConnected = false;
+				}
+				else if (c == 'n')
+				{
+					m_IsDatabaseConnected == false;
+					exit(-1);
+				}
+				else if (c == 't')
+				{
+					m_connectToDatabase(host, user, password, database_name, port);
+				}
+				break;
+			}
+			std::cout << "\n";
+		}
+		//hide console
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
 		getchar();
 
 	}
 	catch (const char *ex)
 	{
+		//clear console
+		system("cls");
+		//show console
+		ShowWindow(GetConsoleWindow(), SW_SHOW);
+		std::cout << "Unable to connect to database!\n";
 		std::cout << "EXCEPTION: " << ex << '\n';
-		getchar();
+		char c;
+		while (true)
+		{
+			std::cout << "Do you want to play offline? Your score wont be saved!\n";
+			std::cout << "You can try again or play without database t\\y\\n: ";
+			std::cin >> c;
 
+			if (c == 'y' || c == 'n' || c == 't')
+			{
+				if (c == 'y')
+				{
+					m_IsDatabaseConnected = false;
+				}
+				else if (c == 'n')
+				{
+					m_IsDatabaseConnected == false;
+					exit(-1);
+				}
+				else if (c == 't')
+				{
+					m_connectToDatabase(host, user, password, database_name, port);
+				}
+				break;
+			}
+			std::cout << "\n";
+		}
+		//hide console
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
+		getchar();
 	}
 }
 
@@ -434,5 +501,121 @@ std::vector<MySQL::m_Row> MySQL::getTopTen(const char * databaseName, const char
 		std::cout << "EXCEPTION: " << ex << '\n';
 		getchar();
 		exit(EXIT_FAILURE);
+	}
+}
+
+bool MySQL::isDatabaseConnected() const
+{
+	return m_IsDatabaseConnected;
+}
+
+void MySQL::m_connectToDatabase(const char* host, const char * user, const char * password, char * database_name, int port)
+{
+	static int tryAgain = 0;
+	tryAgain++;
+
+	if (tryAgain >= 4)
+	{
+		system("cls");
+		std::cout << "I'm sorry.\nToo many tries to connect to database.\nCheck connection with MySQL server.\n";
+		getchar(); getchar();
+		exit(-1);
+	}
+
+	try {
+		// connection properties object
+		sql::ConnectOptionsMap connection_properties;
+
+		connection_properties["hostName"] = m_host;
+		connection_properties["userName"] = m_username;
+		connection_properties["password"] = m_password;
+		connection_properties["schema"] = m_database_name; //database == schema
+		connection_properties["port"] = m_port;
+		connection_properties["OPT_RECONNECT"] = true;
+
+		//connect to database
+		m_connection = std::move(std::unique_ptr<sql::Connection>(m_driver->connect(connection_properties)));
+		//create statement
+		m_statement = std::move(std::unique_ptr<sql::Statement>(m_connection->createStatement()));
+
+		//try block is ok 
+		m_IsDatabaseConnected = true;
+	}
+	catch (std::exception &ex)
+	{
+		//clear console
+		system("cls");
+		//show console
+		ShowWindow(GetConsoleWindow(), SW_SHOW);
+		std::cout << "Unable to connect to database!\n";
+		std::cout << "STD EXCEPTION: " << ex.what() << '\n';
+		char c;
+		while (true)
+		{
+			std::cout << "Do you want to play offline? Your score wont be saved!\n";
+			std::cout << "You can try again or play without database t\\y\\n: ";
+			std::cin >> c;
+
+			if (c == 'y' || c == 'n' || c == 't')
+			{
+				if (c == 'y')
+				{
+					m_IsDatabaseConnected = false;
+				}
+				else if (c == 'n')
+				{
+					m_IsDatabaseConnected == false;
+					exit(-1);
+				}
+				else if (c == 't')
+				{
+					m_connectToDatabase(host, user, password, database_name, port);
+				}
+				break;
+			}
+			std::cout << "\n";
+		}
+		//hide console
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
+		getchar();
+
+	}
+	catch (const char *ex)
+	{
+		//clear console
+		system("cls");
+		//show console
+		ShowWindow(GetConsoleWindow(), SW_SHOW);
+		std::cout << "Unable to connect to database!\n";
+		std::cout << "EXCEPTION: " << ex << '\n';
+		char c;
+		while (true)
+		{
+			std::cout << "Do you want to play offline? Your score wont be saved!\n";
+			std::cout << "You can try again or play without database t\\y\\n: ";
+			std::cin >> c;
+
+			if (c == 'y' || c == 'n' || c == 't')
+			{
+				if (c == 'y')
+				{
+					m_IsDatabaseConnected = false;
+				}
+				else if (c == 'n')
+				{
+					m_IsDatabaseConnected == false;
+					exit(-1);
+				}
+				else if (c == 't')
+				{
+					m_connectToDatabase(host, user, password, database_name, port);
+				}
+				break;
+			}
+			std::cout << "\n";
+		}
+		//hide console
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
+		getchar();
 	}
 }

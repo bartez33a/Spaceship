@@ -10,6 +10,8 @@
 #include <ctime>
 //for expanding month and day to format mm, dd
 #include <iomanip>
+//hide and show console
+#include <Windows.h>
 
 class MySQL
 {
@@ -19,7 +21,6 @@ public:
 	~MySQL();
 	//forward declaration
 	struct m_Row;
-
 
 	//functon for checking if database (schema) of name databaseName exists on SQL server
 	bool checkIfDatabaseExists(const char *databaseName);
@@ -43,6 +44,8 @@ public:
 	std::vector<int> getBestScores(const char * databaseName, const char *tableName);
 	std::vector<m_Row> getTopTen(const char * databaseName, const char *tableName);
 
+	bool isDatabaseConnected() const;
+
 private:
 	//url
 	const char * m_url;
@@ -62,6 +65,11 @@ private:
 	std::unique_ptr< sql::Connection> m_connection;
 	//statement object for executing sql statements
 	std::unique_ptr< sql::Statement > m_statement;
+	//for checking if database is connected
+	bool m_IsDatabaseConnected;
+	//function for connecting to database
+	void m_connectToDatabase(const char* host, const char* user, const char* password, char* database_name, int port = 3306);
+
 public:
 	struct m_Row {
 		std::string name;

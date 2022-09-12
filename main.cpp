@@ -104,29 +104,6 @@ int main()
 	//terminate glfw
 	glfwTerminate();
 
-	MySQL mysql("localhost", "root", "", "spaceship");
-	mysql.printAllColumns("spaceship", "best_score");
-	mysql.printAllRecords("spaceship", "best_score");
-	
-	for (auto &bs : mysql.getBestScores("spaceship", "best_score"))
-	{
-		std::cout << bs << " ";
-	}
-	std::cout << '\n';
-
-	std::time_t result = std::time(nullptr);
-	char time[50];
-	tm tm2;
-	localtime_s(&tm2, &result);
-	asctime_s(time, &tm2);
-
-
-	std::cout << time
-		<< result << " seconds since the Epoch\n";
-	//wait for key
-	getchar();
-	getchar();
-
 	return EXIT_SUCCESS;
 }
 
