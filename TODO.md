@@ -2,6 +2,8 @@
 
 ## My ideas:
 
+- add detecting collision between meteors
+- add detecting collision between rockets and base
 - create slide to visualise loading ammo
 - create rocket texture
 - add few more weapons
