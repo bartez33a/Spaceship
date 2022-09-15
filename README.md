@@ -15,6 +15,14 @@ We can use our mouse to rotate spaceship and WASD keys to move spaceship.
 - When we press P - we pause game
 - When we press M - we can see top 10 scores from MySQL database (only if we are connected to database)
 
+## Used libraries
+- [GLFW](https://github.com/glfw/glfw)
+- [GLAD](https://glad.dav1d.de/)
+- [GLM](https://github.com/g-truc/glm)
+- [FreeType](http://freetype.org/)
+- [MySQL C++/Connector](https://github.com/mysql/mysql-connector-cpp)
+
+
 ## Screenshots
 ![image](https://user-images.githubusercontent.com/107147109/186295857-3c6a6ddf-d5fe-4e01-a26d-a578ae2776be.png)
 ![image](https://user-images.githubusercontent.com/107147109/186295887-cd4f37a7-aa86-4b5b-b768-76eae830cbe0.png)
