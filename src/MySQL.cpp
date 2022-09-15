@@ -56,7 +56,7 @@ m_port{ port }, m_driver{ sql::mysql::get_driver_instance() }
 			std::cout << "\n";
 		}
 		//hide console
-		ShowWindow(GetConsoleWindow(), SW_HIDE);
+		//ShowWindow(GetConsoleWindow(), SW_HIDE);
 		getchar();
 
 	}
@@ -95,7 +95,7 @@ m_port{ port }, m_driver{ sql::mysql::get_driver_instance() }
 			std::cout << "\n";
 		}
 		//hide console
-		ShowWindow(GetConsoleWindow(), SW_HIDE);
+		//ShowWindow(GetConsoleWindow(), SW_HIDE);
 		getchar();
 	}
 }
@@ -103,7 +103,11 @@ m_port{ port }, m_driver{ sql::mysql::get_driver_instance() }
 MySQL::~MySQL()
 {
 	//close connection with sql server
-	m_connection->close();
+	if (m_IsDatabaseConnected)
+	{ 
+		m_connection->close();
+	}
+	
 }
 
 bool MySQL::checkIfDatabaseExists(const char * databaseName)
@@ -576,7 +580,7 @@ void MySQL::m_connectToDatabase(const char* host, const char * user, const char 
 			std::cout << "\n";
 		}
 		//hide console
-		ShowWindow(GetConsoleWindow(), SW_HIDE);
+		//ShowWindow(GetConsoleWindow(), SW_HIDE);
 		getchar();
 
 	}
@@ -615,7 +619,7 @@ void MySQL::m_connectToDatabase(const char* host, const char * user, const char 
 			std::cout << "\n";
 		}
 		//hide console
-		ShowWindow(GetConsoleWindow(), SW_HIDE);
+		//ShowWindow(GetConsoleWindow(), SW_HIDE);
 		getchar();
 	}
 }

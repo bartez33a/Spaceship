@@ -104,6 +104,8 @@ int main()
 	//terminate glfw
 	glfwTerminate();
 
+	getchar(); getchar();
+
 	return EXIT_SUCCESS;
 }
 

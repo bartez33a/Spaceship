@@ -35,7 +35,8 @@ m_mySQL{ "localhost", "root", "", "spaceship"}
 	//set window size variables
 	glfwGetWindowSize(window, &m_win_w, &m_win_h);
 	// hide console
-	ShowWindow(GetConsoleWindow(), SW_HIDE);
+	//ShowWindow(GetConsoleWindow(), SW_HIDE);
+
 	//at the beginning game is not paused
 	m_pauseGame = false;
 	//and menu is not turn on
@@ -563,21 +564,21 @@ void Manager::m_drawAllObjects()
 	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
 }
 
-// function for checking collisions
+// function for checking collisions:
+// meteor <--> rocket
+// meteor <--> base
+// spaceship <--> fuel -> to tank fuel
+// meteor<--> meteor
 void Manager::m_checkAllCollisions()
 {
 	//check collision meteor <--> rocket
 	//for each rocket
-	int i = 0; int j = 0;
 	for (std::list<Rocket>::iterator it = m_rockets.begin(); it != m_rockets.end();)
 	{
-		j = 0;
-		i++;
 		bool coll = false; //check collision
-						   //for each meteor
+		//for each meteor
 		for (std::list<Meteor>::iterator it2 = m_meteors.begin(); it2 != m_meteors.end();)
 		{
-			j++;
 			// if rocket and meteor have collision
 			if (checkCollisionCubeSphere(*it, *it2))
 			{
@@ -636,6 +637,57 @@ void Manager::m_checkAllCollisions()
 			it++;
 		}
 	} // tank fuel
+
+	//check collision meteor <--> meteor
+	for (auto it1 = m_meteors.begin(); it1 != m_meteors.end();)
+	{
+		bool coll = false;
+		for (auto it2 = m_meteors.begin(); it2 != m_meteors.end();)
+		{
+			// if checking the same meteor with the same meteor, increase iterator and skip this iteration.
+			if (it1 == it2)
+			{
+				it2++;
+				continue;
+			}
+			else
+			{
+				//if there is collision
+				if (checkCollisionSphere(*it1, *it2))
+				{
+					//delete both meteors
+					//this functions erases object *it and returns iterator to next object
+					it1 = deleteMeteor(it1);
+					
+					// if after destroying meteor *it1, it1==it2 -> destroy *it1 again
+					// else destroy meteor *it2
+					if (it1 == it2)
+					{
+						it1 = deleteMeteor(it1);
+					}
+					else
+					{
+						it2 = deleteMeteor(it2);
+					}
+
+					//set collision flag to true
+					coll = true;
+					break;
+				}
+				else
+				{
+					//if there is not collision -> increase it2
+					it2++;
+				}
+			}
+		}
+		//if there is not collision -> increase it1
+		//and if there is collision -> it1 is already increased in previous loop and this object is destroyed
+		if (!coll)
+		{
+			it1++;
+		}
+	}
 }
 
 // function for moving spaceship.
