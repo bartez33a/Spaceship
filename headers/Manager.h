@@ -57,15 +57,15 @@ private:
 	std::list<Meteor>::iterator deleteMeteor(std::list<Meteor>::iterator it);
 	std::list<Rocket>::iterator deleteRocket(std::list<Rocket>::iterator it);
 	//draw and moveall objects
-	void m_drawAndMoveAllObjects(double deltaTime);
+	void drawAndMoveAllObjects(double deltaTime);
 	//only draw all objects
-	void m_drawAllObjects();
+	void drawAllObjects();
 	//check all collisions
-	void m_checkAllCollisions();
+	void checkAllCollisions();
 	// move spaceship
-	void m_moveSpaceship(GLFWwindow * window, double deltaTime);
+	void moveSpaceship(GLFWwindow * window, double deltaTime);
 	// update matrices for shaders
-	void m_updateShadersMatrices();
+	void updateShadersMatrices();
 
 	
 	/// private variables
@@ -109,7 +109,11 @@ private:
 	
 	// shader for background meteors - without texture.
 	Shader m_background_meteors_shader;
-	Shader m_rocket_shader;
+
+	//Shader for rockets with texture
+	Shader m_rocket_shader_tex;
+	//Texture for rockets
+	Texture m_rocket_tex0;
 
 	//fuel object
 	struct m_fuel_struct {
@@ -162,6 +166,6 @@ private:
 	//for storing top ten scores
 	std::vector<MySQL::m_Row> topTen;
 	void drawMenu();
-	void m_generateMenu();
+	void generateMenu();
 	
 };

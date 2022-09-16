@@ -154,12 +154,27 @@ Cube::~Cube()
 // fuction for drawing Cube
 void Cube::draw()
 {
-	vao.BindBuffer();
+	
 	//use shader and set modelMatrix
 	shader_->use();
 	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix);
-
+	//bind vao
+	vao.BindBuffer();
 	//draw object -> bind buffer and draw all vertices
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	vao.UnbindBuffer();
+}
+
+void Cube::draw_tex()
+{
+	// use shader program
+	shader_->use();
+	// select texture
+	shader_->setUniformInt("tex", m_tex_no);
+	// set model matrix
+	shader_->setUniformMatrix(shader_->getModelMatrixLocation(), modelMatrix); //translate object
+	// and draw object
+	vao.BindBuffer();
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	vao.UnbindBuffer();
 }

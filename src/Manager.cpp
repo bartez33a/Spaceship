@@ -12,11 +12,13 @@ m_background_meteors_shader{ "shaders/shader_background_meteor.vs", "shaders/sha
 m_meteor_shader_tex0{ "textures/meteors/magma.png", GL_TEXTURE0 },
 m_meteor_shader_tex1{ "textures/meteors/meteor.png", GL_TEXTURE1 },
 m_meteor_shader_tex2{ "textures/meteors/meteor2.png", GL_TEXTURE2 },
-m_rocket_shader("shaders/shader.vs", "shaders/shader.fs"), //shader without texture
 m_fuel_shader{ "shaders/fuel/fuel_shader.vs", "shaders/fuel/fuel_shader.fs" },
 m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
 m_fuel_shader_tex1{ "textures/fuel/fuel2.jpg", GL_TEXTURE1 },
 m_fuelTexNo{ 2 },
+//rockets - shaders, textures
+m_rocket_shader_tex{"shaders/rocket/shader_rocket_tex.vs","shaders/rocket/shader_rocket_tex.fs"},
+m_rocket_tex0 {"textures/rocket/rocket1.png", GL_TEXTURE0},
 //text rendering
 textGen{ 0, 128 }, // from 0 to 127 (all basic characters)
 m_textGen_TextBox{0 , 128, 30},
@@ -66,8 +68,11 @@ m_mySQL{ "localhost", "root", "", "spaceship"}
 	// set number of meteors textures
 	setMeteorsTexNo(3);
 
-	//update rockets matrices
-	m_rocket_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+	//rockets
+	//update meteors matrices
+	m_rocket_shader_tex.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+	//and set textures' uniforms
+	glUniform1i(glGetUniformLocation(m_rocket_shader_tex.get_ID(), "texture0"), 0); // manually
 
 	// update fuel objects matrices
 	m_fuel_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
@@ -349,18 +354,16 @@ void Manager::createRocket()
 		if (m_loadingAmmoTimer >= m_loadingAmmoTime)
 		{
 			// create rockets
-			m_rockets.emplace_back(&m_rocket_shader, camPos.x, camPos.y, camPos.z, camFront);
+			m_rockets.emplace_back(&m_rocket_shader_tex, camPos.x, camPos.y, camPos.z, 1, 0, camFront);
 			// decrease ammo
 			m_rocketsNo--;
-			// show information
-			std::cout << "Ammo left: " << m_rocketsNo << '\n';
 			// reset loading timer
 			m_loadingAmmoTimer = 0.0;
 		}
 	}
 	else
 	{
-		std::cout << "No more ammo!\n";
+		//std::cout << "No more ammo!\n";
 	}
 } // create Rocket
 
@@ -410,7 +413,7 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 }
 
 // function for drawing all objects. this function also moves all objects
-void Manager::m_drawAndMoveAllObjects(double deltaTime)
+void Manager::drawAndMoveAllObjects(double deltaTime)
 {
 	//draw background meteors
 	//rotate background meteors
@@ -437,10 +440,13 @@ void Manager::m_drawAndMoveAllObjects(double deltaTime)
 	}
 
 	//draw rockets
+	//bind texture
+	m_rocket_tex0.bindTexture();
 	for (auto & r : m_rockets)
 	{
+
 		r.move(deltaTime);
-		r.draw();
+		r.draw_tex();
 	}
 
 	//draw fuel
@@ -450,7 +456,6 @@ void Manager::m_drawAndMoveAllObjects(double deltaTime)
 	{
 		f.m_fuel_obj.draw();
 		m_fuel_shader.setUniformInt("tex", f.m_fuel_texNo);
-		//std::cout << "fuel_tex_no = " << f.m_fuel_texNo << '\n';
 	}
 
 	/// text rendering
@@ -489,7 +494,7 @@ void Manager::m_drawAndMoveAllObjects(double deltaTime)
 }
 
 // function for drawing all objects.
-void Manager::m_drawAllObjects()
+void Manager::drawAllObjects()
 {
 	//draw background meteors
 	//rotate background meteors
@@ -514,9 +519,10 @@ void Manager::m_drawAllObjects()
 	}
 
 	//draw rockets
+	m_rocket_tex0.bindTexture();
 	for (auto & r : m_rockets)
 	{
-		r.draw();
+		r.draw_tex();
 	}
 
 	//draw fuel
@@ -569,7 +575,7 @@ void Manager::m_drawAllObjects()
 // meteor <--> base
 // spaceship <--> fuel -> to tank fuel
 // meteor<--> meteor
-void Manager::m_checkAllCollisions()
+void Manager::checkAllCollisions()
 {
 	//check collision meteor <--> rocket
 	//for each rocket
@@ -587,7 +593,7 @@ void Manager::m_checkAllCollisions()
 				it = deleteRocket(it); //returns iterator to next element
 				it2 = deleteMeteor(it2);
 
-				std::cout << "Score: " << ++m_score << '\n';
+				++m_score;
 				//if you shoot meteor -> you get more ammo
 				m_rocketsNo += 2;
 				coll = true;
@@ -691,7 +697,7 @@ void Manager::m_checkAllCollisions()
 }
 
 // function for moving spaceship.
-void Manager::m_moveSpaceship(GLFWwindow * window, double deltaTime)
+void Manager::moveSpaceship(GLFWwindow * window, double deltaTime)
 {
 	static glm::vec3 spaceship_pos = m_spaceship.getCamPos();
 	//if we have enough fuel, get user input
@@ -704,13 +710,12 @@ void Manager::m_moveSpaceship(GLFWwindow * window, double deltaTime)
 			spaceship_pos = m_spaceship.getCamPos();
 			//decrease fuel
 			m_spaceship.useFuel(0.1);
-			std::cout << "Spaceship fuel: " << m_spaceship.getFuel() << '\n';
 		}
 	}
 }
 
 // function for update shaders matrices.
-void Manager::m_updateShadersMatrices()
+void Manager::updateShadersMatrices()
 {
 	glm::mat4 mm = glm::mat4(1.0f);
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 200.0f);
@@ -718,7 +723,7 @@ void Manager::m_updateShadersMatrices()
 	m_base_shader.setUniformMatrix(m_base_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 	m_background_meteors_shader.setUniformMatrix(m_background_meteors_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
-	m_rocket_shader.setUniformMatrix(m_rocket_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_rocket_shader_tex.setUniformMatrix(m_rocket_shader_tex.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 	m_fuel_shader.setUniformMatrix(m_fuel_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 }
 
@@ -776,7 +781,6 @@ void Manager::checkAndWriteScore()
 				{
 					std::cout << "Name cannot be empty! Write something ;)";
 				}
-				getchar();
 			}
 		} while (!validName);
 		// send data to database
@@ -809,7 +813,7 @@ void Manager::drawMenu()
 	std::for_each(m_TextBoxesScoreValue.begin(), m_TextBoxesScoreValue.end(), [](TextBox &box) {box.draw(false); });
 }
 
-void Manager::m_generateMenu()
+void Manager::generateMenu()
 {
 	// update top ten scores vector
 	topTen = m_mySQL.getTopTen("spaceship", "best_score");
@@ -906,26 +910,26 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 			}
 
 			/// move of spaceship
-			m_moveSpaceship(window, deltaTime);
+			moveSpaceship(window, deltaTime);
 
 			// increase loading ammo time
 			m_loadingAmmoTimer += deltaTime;
 
 			/// set view matrix for each shader -> camera!
-			m_updateShadersMatrices();
+			updateShadersMatrices();
 
 			/// drawing objects
-			m_drawAndMoveAllObjects(deltaTime);
+			drawAndMoveAllObjects(deltaTime);
 
 			/// delete objects and check collisions
 			//delete rockets and meteors when covered distance is too far
 			distanceAutoDelete();
-			m_checkAllCollisions();
+			checkAllCollisions();
 		}
 		else // game is paused and menu is hidden
 		{
 			/// drawing objects
-			m_drawAllObjects();
+			drawAllObjects();
 			glm::vec4 aaa = textGen.render(m_shader_text, "Game paused!", (m_win_w / 2.0f - 180.0f), (m_win_h / 2.0f - 10.0f), 1.1f, glm::vec3(0.9f, 0.2f, 0.0f));
 		}
 	} 
@@ -1018,6 +1022,7 @@ void Manager::processInput(GLFWwindow * window)
 			space_pushed = false;
 		}
 	}
+
 	//
 	//	** KEY P	**
 	
@@ -1051,7 +1056,7 @@ void Manager::processInput(GLFWwindow * window)
 			if (m_mySQL.isDatabaseConnected())
 			{
 				//generate menu - show top 10
-				m_generateMenu();
+				generateMenu();
 			}
 
 			//and if game is not pasued, pause game OR if menu is hidden and game is paused, unpause game

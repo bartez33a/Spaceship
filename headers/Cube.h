@@ -19,6 +19,8 @@ public:
 	~Cube();
 	//function for drawing object
 	void draw();
+	//function for drawing objects with texture
+	void draw_tex();
 	//getters
 	glm::vec3 getPosition() const;
 	glm::vec3 getDimensions() const;

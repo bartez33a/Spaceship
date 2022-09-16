@@ -3,10 +3,18 @@
 // constructor
 // x,y,z - initial position
 // dir - vector which points direction of movement
-Rocket::Rocket(Shader *s, float x, float y, float z, glm::vec3 dir) : Cube{ s, x,y,z, 0.1f, 0.1f, 0.1f, 1.0f, 0.0f, 0.0f }, direction{ dir }
+Rocket::Rocket(Shader *s, float x, float y, float z, glm::vec3 dir) : Cube{ s, x,y,z, 0.1f, 0.1f, 0.5f, 1.0f, 0.0f, 0.0f }, direction{ dir }
 {
 	speed =  25.0;
 	init_pos  = glm::vec3(x, y, z) ;
+}
+
+Rocket::Rocket(Shader * s, float x, float y, float z, int rep, int texNo, glm::vec3 dir): Cube{ s, x,y,z, 0.1f, 0.1f, 0.2f, 1, 1.0f, 0.0f, 0.0f },
+direction{ dir }
+{
+	m_tex_no = texNo;
+	speed = 25.0;
+	init_pos = glm::vec3(x, y, z);
 }
 
 // copy constructor

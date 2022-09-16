@@ -9,6 +9,8 @@ class Rocket :
 public:
 	// constructor
 	Rocket(Shader *s, float x, float y, float z, glm::vec3 dir); //constructor
+	// constructor for rockets with texture
+	Rocket(Shader *s, float x, float y, float z, int rep, int texNo, glm::vec3 dir ); //constructor
 	// copy constructor
 	Rocket(const Rocket & rocket);
 	//move constructor
