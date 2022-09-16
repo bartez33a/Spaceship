@@ -372,7 +372,7 @@ void MySQL::printAllRecords(const char * databaseName, const char * tableName)
 				{
 					std::cout << rs->getString(columns[col].name.c_str()) << "\t";
 				}
-				else if (columns[col].dataType == "DATE")
+				else if (columns[col].dataType == "DATETIME")
 				{
 					std::cout << rs->getString(columns[col].name.c_str()) << "\t";
 				}
@@ -404,9 +404,14 @@ void MySQL::writeScore(std::string name, int score)
 		tm tm2;
 		localtime_s(&tm2, &result);
 
+		// yyyy-mm-dd hh:mm:ss
 		std::stringstream ss;
-		ss << tm2.tm_year + 1900 << "-" << std::setw(2) << std::setfill('0') << tm2.tm_mon + 1 << "-" <<
-			std::setw(2) << std::setfill('0') << tm2.tm_mday;
+		ss << tm2.tm_year + 1900 << "-" <<
+			std::setw(2) << std::setfill('0') << tm2.tm_mon + 1 << "-" <<
+			std::setw(2) << std::setfill('0') << tm2.tm_mday << " " <<
+			std::setw(2) << std::setfill('0') << tm2.tm_hour << ":" <<
+			std::setw(2) << std::setfill('0') << tm2.tm_min << ":" <<
+			std::setw(2) << std::setfill('0') << tm2.tm_sec;
 
 		m_Row row{ name, score, ss.str() };
 		addRowIntoTable("spaceship", "best_score", row);
@@ -485,7 +490,8 @@ std::vector<MySQL::m_Row> MySQL::getTopTen(const char * databaseName, const char
 		m_connection->setSchema(databaseName);
 		//then select table
 		std::stringstream command;
-		command << "select Name, Score  from " << tableName << " ORDER BY Score DESC";
+		//order by score and if scores are equal, order by date ascending (first score (by date) is first)
+		command << "select Name, Score  from " << tableName << " ORDER BY Score DESC, Date ASC LIMIT 10";
 		std::unique_ptr< sql::ResultSet > rs(m_statement->executeQuery(command.str()));
 
 		while (rs->next())

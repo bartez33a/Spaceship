@@ -951,7 +951,6 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		{
 			//check if score is in top 10
 			checkAndWriteScore();
-
 		}
 		return false;
 	}
