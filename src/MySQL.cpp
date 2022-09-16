@@ -427,7 +427,9 @@ void MySQL::writeScore(std::string name, int score)
 
 }
 
-std::vector<int> MySQL::getBestScores(const char * databaseName, const char *tableName)
+//this function returns best scores
+//you can limit number of records, default -> without limit
+std::vector<int> MySQL::getBestScores(const char * databaseName, const char *tableName, int limit)
 {
 	try 
 	{
@@ -436,7 +438,14 @@ std::vector<int> MySQL::getBestScores(const char * databaseName, const char *tab
 		m_connection->setSchema(databaseName);
 		//then select table
 		std::stringstream command;
-		command << "select Score from " << tableName << " ORDER BY Score DESC";
+		if (limit != 0)
+		{
+			command << "select Score from " << tableName << " ORDER BY Score DESC LIMIT " << limit;
+		}
+		else
+		{
+			command << "select Score from " << tableName << " ORDER BY Score DESC";
+		}
 		std::unique_ptr< sql::ResultSet > rs(m_statement->executeQuery(command.str()));
 
 

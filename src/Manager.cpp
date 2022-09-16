@@ -735,7 +735,7 @@ void Manager::checkAndWriteScore()
 	// show console
 	ShowWindow(GetConsoleWindow(), SW_SHOW);
 
-	std::vector<int> best_ten_scores = m_mySQL.getBestScores("spaceship", "best_score");
+	std::vector<int> best_ten_scores = m_mySQL.getBestScores("spaceship", "best_score", 10);
 	bool is_new_score_best = false;
 	const int top_ten_no = 10;
 	if (top_ten_no > best_ten_scores.size())

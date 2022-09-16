@@ -40,8 +40,8 @@ public:
 	void printAllRecords(const char * databaseName, const char *tableName);
 	//this function adds score to table
 	void writeScore(std::string name, int score);
-	//this function returns 10 best scores
-	std::vector<int> getBestScores(const char * databaseName, const char *tableName);
+	//this function returns best scores
+	std::vector<int> getBestScores(const char * databaseName, const char *tableName, int limit = 0);
 	std::vector<m_Row> getTopTen(const char * databaseName, const char *tableName);
 
 	bool isDatabaseConnected() const;
