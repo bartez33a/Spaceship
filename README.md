@@ -24,7 +24,11 @@ We can use our mouse to rotate spaceship and WASD keys to move spaceship.
 
 
 ## Screenshots
+
+![image](https://user-images.githubusercontent.com/107147109/189580819-1460672d-4d06-4de4-9c0b-78ccf8273142.png)
+![image](https://user-images.githubusercontent.com/107147109/190596828-660a4d6c-0041-49da-8fdd-145ade1c5808.png)
+![image](https://user-images.githubusercontent.com/107147109/186295900-e1a48206-ad17-4791-946d-9e05f82da44a.png)
 ![image](https://user-images.githubusercontent.com/107147109/186295857-3c6a6ddf-d5fe-4e01-a26d-a578ae2776be.png)
 ![image](https://user-images.githubusercontent.com/107147109/186295887-cd4f37a7-aa86-4b5b-b768-76eae830cbe0.png)
-![image](https://user-images.githubusercontent.com/107147109/186295900-e1a48206-ad17-4791-946d-9e05f82da44a.png)
-![image](https://user-images.githubusercontent.com/107147109/189580819-1460672d-4d06-4de4-9c0b-78ccf8273142.png)
+
+
