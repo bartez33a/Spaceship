@@ -142,6 +142,7 @@
     <ClCompile Include="src\Rocket.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Shape.cpp" />
+    <ClCompile Include="src\Slider.cpp" />
     <ClCompile Include="src\Spaceship.cpp" />
     <ClCompile Include="src\Sphere.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="headers\Rocket.h" />
     <ClInclude Include="headers\Shader.h" />
     <ClInclude Include="headers\Shape.h" />
+    <ClInclude Include="headers\Slider.h" />
     <ClInclude Include="headers\Spaceship.h" />
     <ClInclude Include="headers\Sphere.h" />
     <ClInclude Include="headers\stb_image.h" />

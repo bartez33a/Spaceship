@@ -7,8 +7,8 @@ Manager::Manager(GLFWwindow* window) : m_base_shader{ "shaders/base/base_shader_
 m_base_texture{ "textures/base/base.jpg", GL_TEXTURE0 },
 m_base{ &m_base_shader, -10.0f, -10.0f, 20.0f, 20.0f, 20.0f, 5.0f, 1, 1.0f, 1.0f, 0.0f },
 //shader for meteors
-m_meteor_shader{ "shaders/meteor/shader_meteor_tex.vs", "shaders/meteor/shader_meteor_tex.fs" },
-m_background_meteors_shader{ "shaders/shader_background_meteor.vs", "shaders/shader_background_meteor.fs" },
+m_meteor_shader{ "shaders/meteor/meteor_shader_tex.vs", "shaders/meteor/meteor_shader_tex.fs" },
+m_background_meteors_shader{ "shaders/background_meteor/background_meteor_shader.vs", "shaders/background_meteor/background_meteor_shader.fs" },
 m_meteor_shader_tex0{ "textures/meteors/magma.png", GL_TEXTURE0 },
 m_meteor_shader_tex1{ "textures/meteors/meteor.png", GL_TEXTURE1 },
 m_meteor_shader_tex2{ "textures/meteors/meteor2.png", GL_TEXTURE2 },
@@ -17,8 +17,11 @@ m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
 m_fuel_shader_tex1{ "textures/fuel/fuel2.jpg", GL_TEXTURE1 },
 m_fuelTexNo{ 2 },
 //rockets - shaders, textures
-m_rocket_shader_tex{"shaders/rocket/shader_rocket_tex.vs","shaders/rocket/shader_rocket_tex.fs"},
+m_rocket_shader_tex{"shaders/rocket/rocket_shader_tex.vs","shaders/rocket/rocket_shader_tex.fs"},
 m_rocket_tex0 {"textures/rocket/rocket1.png", GL_TEXTURE0},
+//loading ammo slider
+m_slider_shader{"shaders/slider/slider_shader.vs","shaders/slider/slider_shader.fs"},
+m_ammo_slider{&m_slider_shader, 100, 200, 0.0f, 100.0f, 20.0f, m_loadingAmmoTime, 1.0f, 0.0f, 0.0f},
 //text rendering
 textGen{ 0, 128 }, // from 0 to 127 (all basic characters)
 m_textGen_TextBox{0 , 128, 30},
@@ -85,6 +88,9 @@ m_mySQL{ "localhost", "root", "", "spaceship"}
 	//ortographic projection for TextBox->rectangle
 	m_shader_textBoxRect.setUniformMatrix(m_shader_textBoxRect.getProjectionMatrixLocation(), projection_text);
 
+	//slider for ammo loading visualization
+	m_slider_shader.setUniformMatrix(m_slider_shader.getProjectionMatrixLocation(), projection_text);
+
 	/// game settings
 	//player
 	m_score = 0;
@@ -94,6 +100,7 @@ m_mySQL{ "localhost", "root", "", "spaceship"}
 	//shooting 
 	m_loadingAmmoTime = 1.0; //time to load ammo
 	m_loadingAmmoTimer = m_loadingAmmoTime; //so we can shoot at the beginning 
+	m_ammo_slider.setTime(m_loadingAmmoTime);
 
 	//base HP
 	m_base_HP = 10;
@@ -491,6 +498,9 @@ void Manager::drawAndMoveAllObjects(double deltaTime)
 
 	std::string s_baseHP2 = std::to_string(m_base_HP);
 	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	// ammo slider
+	m_ammo_slider.animate(m_loadingAmmoTimer);
 }
 
 // function for drawing all objects.
@@ -568,6 +578,9 @@ void Manager::drawAllObjects()
 
 	std::string s_baseHP2 = std::to_string(m_base_HP);
 	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	// ammo slider
+	m_ammo_slider.animate(m_loadingAmmoTimer);
 }
 
 // function for checking collisions:
@@ -912,9 +925,16 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 			/// move of spaceship
 			moveSpaceship(window, deltaTime);
 
-			// increase loading ammo time
-			m_loadingAmmoTimer += deltaTime;
-
+			// increase loading ammo timer if it's value is less than loading time
+			if (m_loadingAmmoTimer >= m_loadingAmmoTime)
+			{ 
+				m_loadingAmmoTimer = m_loadingAmmoTime;
+			}
+			else 
+			{
+				m_loadingAmmoTimer += deltaTime;
+			}
+			
 			/// set view matrix for each shader -> camera!
 			updateShadersMatrices();
 

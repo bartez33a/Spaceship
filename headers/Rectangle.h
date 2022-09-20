@@ -20,7 +20,6 @@ namespace shapes{
 		void drawLines();
 		//update vertices
 		void updateDimensions(float x, float y, float w, float h);
-		void setShader(Shader& Shader);
 	private:
 		//Shader for drawing
 		Shader m_Shader;

@@ -1,10 +1,8 @@
 // TODO
-// - create rocket texture
 // - visualize loading ammo time
 // - add few more weapons
 // - increase size of spaceship?
 // - add menu e.g. for show best score, exit game
-// - ???
 
 #include <iostream>
 #include <string>

@@ -10,6 +10,7 @@
 #include "TextGenerator.h"
 #include "TextBox.h"
 #include "MySQL.h"
+#include "Slider.h"
 #include <vector>
 #include <list>
 #include <ctime>
@@ -135,6 +136,10 @@ private:
 	Texture m_fuel_shader_tex1;
 	// number of fuel object textures
 	int m_fuelTexNo;
+
+	//slider for laoding ammo visualization
+	Shader m_slider_shader;
+	Slider m_ammo_slider;
 
 	//text rendering
 	TextGenerator textGen;

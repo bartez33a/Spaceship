@@ -26,7 +26,7 @@ Shader::Shader(const char* vs_file, const char* fs_file)
 	}
 	else
 	{
-		std::cout << "Couldn't open vertex shader file!\n";
+		std::cout << "Couldn't open vertex shader file! " << vs_file << '\n';
 		getchar();
 		exit (EXIT_FAILURE);
 	}
