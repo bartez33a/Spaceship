@@ -14,7 +14,7 @@ public:
 	// copy constructor
 	Rocket(const Rocket & rocket);
 	//move constructor
-	Rocket(const Rocket && rocket); 
+	Rocket(Rocket && rocket); 
 	// default constructor
 	Rocket() = delete;
 	// destructor
@@ -29,7 +29,7 @@ private:
 	//direction of movement
 	glm::vec3 direction;
 	//speed of rocket
-	float speed;
+	double speed;
 	//distance from starting point
 	float distance;
 };

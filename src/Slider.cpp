@@ -7,18 +7,25 @@
 // time - initial value of timer preset
 // RGB - colors of slider
 Slider::Slider(Shader* shader, float x, float y, float z, float w, float h, float time, float R, float G, float B):
+	//coordinates
 	m_x{x},
 	m_y{y},
 	m_z{z},
+	//dimensions
 	m_w{w},
 	m_h{h},
+	//colors
 	m_R{R},
 	m_G{G},
 	m_B{B},
+	//timer
 	m_time_of_animation{time},
 	m_actual_time{0.f},
+	//shader
 	m_shader{*shader},
+	//inner rectangle - filled
 	m_inner_rect{ *shader, x, y, z, 0.0f, h, R, G, B },
+	//outter rectangle - only lines
 	m_outer_rect{ *shader, x, y, z, w, h, R, G, B } //at the beggining width of rectangle is equal to 0.0f
 {
 
@@ -37,6 +44,13 @@ void Slider::animate(float actualTime)
 {
 	//set m_actual_time
 	m_actual_time = actualTime;
+	
+	// limit value of m_actual_time
+	if (m_actual_time >= m_time_of_animation)
+	{
+		m_actual_time = m_time_of_animation;
+	}
+	
 	//calculate new dimensions of inner rectangle
 	float w = m_w * m_actual_time / m_time_of_animation;
 
@@ -44,12 +58,6 @@ void Slider::animate(float actualTime)
 	m_outer_rect.drawLines();
 	m_inner_rect.updateDimensions(m_x, m_y, w, m_h);
 	m_inner_rect.draw();
-
-	// limit value of m_actual_time
-	if (m_actual_time >= m_time_of_animation)
-	{
-		m_actual_time = m_time_of_animation;
-	}
 }
 
 // function for reset current value of timer

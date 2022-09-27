@@ -27,7 +27,7 @@ Rocket::Rocket(const Rocket & rocket) : Cube(rocket.shader_, rocket.x_, rocket.y
 }
 
 // move conststctor for rocket
-Rocket::Rocket(const Rocket && rocket): Cube(std::move(rocket.shader_), std::move(rocket.x_), 
+Rocket::Rocket(Rocket && rocket): Cube(std::move(rocket.shader_), std::move(rocket.x_), 
 	std::move(rocket.y_), std::move(rocket.z_), 0.1, 0.1, 0.1, 1.0, 0.0, 0.0)
 {
 	direction = std::move(rocket.direction);
@@ -61,9 +61,8 @@ void Rocket::move(double deltaTime)
 // assignment operator
 Rocket & Rocket::operator=(const Rocket & rocket) 
 {
-	Rocket r(shader_, x_, y_, z_, direction);
-	r.speed = rocket.speed;
-	r.distance = rocket.distance;
-	r.init_pos = rocket.init_pos;
-	return r;
+	this->speed = rocket.speed;
+	this->distance = rocket.distance;
+	this->init_pos = rocket.init_pos;
+	return *this;
 }

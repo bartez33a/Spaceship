@@ -21,7 +21,8 @@ m_rocket_shader_tex{"shaders/rocket/rocket_shader_tex.vs","shaders/rocket/rocket
 m_rocket_tex0 {"textures/rocket/rocket1.png", GL_TEXTURE0},
 //loading ammo slider
 m_slider_shader{"shaders/slider/slider_shader.vs","shaders/slider/slider_shader.fs"},
-m_ammo_slider{&m_slider_shader, 100, 200, 0.0f, 100.0f, 20.0f, m_loadingAmmoTime, 1.0f, 0.0f, 0.0f},
+//ammo slider under amount of ammo text
+m_ammo_slider{&m_slider_shader, 630, 430, 0.0f, 150.0f, 15.0f, m_loadingAmmoTime, 1.0f, 0.0f, 0.0f},
 //text rendering
 textGen{ 0, 128 }, // from 0 to 127 (all basic characters)
 m_textGen_TextBox{0 , 128, 30},
@@ -483,21 +484,21 @@ void Manager::drawAndMoveAllObjects(double deltaTime)
 	std::string s_fuel2 = std::to_string(int(m_spaceship.getFuel()));
 	textGen.render(m_shader_text, s_fuel2, value_x_pos, 520, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
 
-	//show ammo
-	std::string s_ammo = "Ammo: ";
-	//s_ammo += std::to_string(m_rocketsNo);
-	textGen.render(m_shader_text, s_ammo, text_x_pos, 490, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-
-	std::string s_ammo2 = std::to_string(m_rocketsNo);
-	textGen.render(m_shader_text, s_ammo2, value_x_pos, 490, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
-
 	//show base HP
 	std::string s_baseHP = "Base HP: ";
 	//s_baseHP += std::to_string(m_base_HP);
-	textGen.render(m_shader_text, s_baseHP, text_x_pos, 460, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+	textGen.render(m_shader_text, s_baseHP, text_x_pos, 490, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	std::string s_baseHP2 = std::to_string(m_base_HP);
-	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+	textGen.render(m_shader_text, s_baseHP2, value_x_pos, 490, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
+
+	//show ammo
+	std::string s_ammo = "Ammo: ";
+	//s_ammo += std::to_string(m_rocketsNo);
+	textGen.render(m_shader_text, s_ammo, text_x_pos, 460, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	std::string s_ammo2 = std::to_string(m_rocketsNo);
+	textGen.render(m_shader_text, s_ammo2, value_x_pos, 460, .5f, glm::vec3(1.0f, 1.0f, 0.0f));
 
 	// ammo slider
 	m_ammo_slider.animate(m_loadingAmmoTimer);
@@ -949,7 +950,8 @@ bool Manager::play(GLFWwindow * window, double deltaTime)
 		else // game is paused and menu is hidden
 		{
 			/// drawing objects
-			drawAllObjects();
+			//drawAllObjects(); //so we can delete this function, but there is less processing...
+			drawAndMoveAllObjects(0.0);
 			glm::vec4 aaa = textGen.render(m_shader_text, "Game paused!", (m_win_w / 2.0f - 180.0f), (m_win_h / 2.0f - 10.0f), 1.1f, glm::vec3(0.9f, 0.2f, 0.0f));
 		}
 	} 
