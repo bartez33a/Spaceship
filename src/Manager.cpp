@@ -285,6 +285,46 @@ bool Manager::checkCollisionCubePoint(const Cube & c1, const glm::vec3 point) co
 	}
 }
 
+bool Manager::checkCollisionRocketModelSphere(const RocketModel& rocketModel, const Sphere& s1) const
+{
+	glm::mat3x2 boundingBox = rocketModel.getBoundingBox();
+	glm::vec3 rocketModelPos = rocketModel.getPosition();
+
+	//std::cout << "Position: " << rocketModelPos.x << ", " << rocketModelPos.y << ", " << rocketModelPos.z << "\n\n";
+	//bounding box
+	float x1 = boundingBox[0].x + rocketModelPos.x;
+	float y1 = boundingBox[1].x + rocketModelPos.y;
+	float z1 = boundingBox[2].x + rocketModelPos.z;
+
+	float w1 = abs(boundingBox[0].y - boundingBox[0].x);
+	float h1 = abs(boundingBox[1].y - boundingBox[1].x);
+	float l1 = abs(boundingBox[2].y - boundingBox[2].x);
+
+	//extract position of Sphere
+	glm::vec3 s1_pos = s1.getPosition();
+	float x2 = s1_pos.x;
+	float y2 = s1_pos.y;
+	float z2 = s1_pos.z;
+
+	float r2 = s1.getRadius();
+
+
+	if (
+		(((x2 + r2) >= x1) && ((x2 - r2) <= (x1 + w1)))
+		&&
+		(((y2 + r2) >= y1) && ((y2 - r2) <= (y1 + h1)))
+		&&
+		(((z2 + r2) >= z1) && ((z2 - r2) <= (z1 + l1)))
+		)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 // create meteor in valid position
 // meteor cannot be generate in position in which is another meteor!
 // TODO! meteor cannot be generete in spaceship's position!
@@ -406,7 +446,7 @@ void Manager::createRocketModel()
 		{
 			// create rockets
 			//m_rockets.emplace_back(&m_rocket_shader_tex, camPos.x, camPos.y, camPos.z, 1, 0, camFront);
-			m_rocket_model_obj_list.emplace_back(rocketModel, camPos.x, camPos.y, camPos.z, m_spaceship.getAngles());
+			m_rocket_model_obj_list.emplace_back(rocketModel, camPos.x, camPos.y, camPos.z, m_spaceship.getCamFront(), m_spaceship.getAngles());
 			std::cout << "added rocket model object at (" << camPos.x << ", " << camPos.y << ", " <<
 				camPos.z << ")\n";
 			// decrease ammo
@@ -464,6 +504,11 @@ std::list<Meteor>::iterator Manager::deleteMeteor(std::list<Meteor>::iterator it
 std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it)
 {
 	return m_rockets.erase(it);
+}
+
+std::list<RocketModel>::iterator Manager::deleteRocketModel(std::list<RocketModel>::iterator it)
+{
+	return m_rocket_model_obj_list.erase(it); 
 }
 
 // function for drawing all objects. this function also moves all objects
@@ -658,6 +703,41 @@ void Manager::checkAllCollisions()
 				glm::vec3 pos = (*it).getPosition();
 				generateFuel(pos, 30);
 				it = deleteRocket(it); //returns iterator to next element
+				it2 = deleteMeteor(it2);
+
+				++m_score;
+				//if you shoot meteor -> you get more ammo
+				m_rocketsNo += 2;
+				coll = true;
+				break;
+			}
+			else
+			{
+				it2++;
+			}
+		} //for loop -> meteors
+		if (!coll)
+		{
+			it++;
+		}
+	} //for loop -> rockets
+
+
+	//check collision rocket(as model) <--> meteor
+		//for each rocket
+	for (std::list<RocketModel>::iterator it = m_rocket_model_obj_list.begin(); it != m_rocket_model_obj_list.end();)
+	{
+		bool coll = false; //check collision
+		//for each meteor
+		for (std::list<Meteor>::iterator it2 = m_meteors.begin(); it2 != m_meteors.end();)
+		{
+			// if rocket and meteor have collision
+			if (checkCollisionRocketModelSphere(*it, *it2))
+			{
+				std::cout << "ROCKET AND METEOR COLLISION\n";
+				glm::vec3 pos = (*it).getPosition();
+				generateFuel(pos, 30);
+				it = deleteRocketModel(it); //returns iterator to next element
 				it2 = deleteMeteor(it2);
 
 				++m_score;

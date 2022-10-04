@@ -44,6 +44,7 @@ private:
 	bool checkCollisionCubeSphere(const Cube &c1, const Sphere &s1) const;
 	bool checkCollisionSphere(const Sphere &s1, const Sphere& s2) const;
 	bool checkCollisionCubePoint(const Cube &c1, const glm::vec3 point) const;
+	bool checkCollisionRocketModelSphere(const RocketModel& rocketModel, const Sphere& s1) const;
 	/// create object functions
 	void createMeteors();
 	// set number of meteors textures
@@ -62,7 +63,10 @@ private:
 	void distanceAutoDelete();
 	//delete meteor function
 	std::list<Meteor>::iterator deleteMeteor(std::list<Meteor>::iterator it);
+	//delete Rocket function
 	std::list<Rocket>::iterator deleteRocket(std::list<Rocket>::iterator it);
+	//delete Rocket as model function
+	std::list<RocketModel>::iterator deleteRocketModel(std::list<RocketModel>::iterator it);
 	//draw and moveall objects
 	void drawAndMoveAllObjects(double deltaTime);
 	//only draw all objects

@@ -4,10 +4,12 @@
 // path -> path to model file
 // x,y,z -> coordinates of object
 // dir -> camera direction
+// camera Angles -> yaw, pitch, roll angles from camera
 // inverse_x,y,z -> if true: inverse coordinates of indicated axis of model while loading object
-RocketModel::RocketModel(std::string path, float x, float y, float z, glm::vec3 cameraAngles, bool inverse_x, bool inverse_y, bool inverse_z):
+RocketModel::RocketModel(std::string path, float x, float y, float z, glm::vec3 dir, glm::vec3 cameraAngles, bool inverse_x, bool inverse_y, bool inverse_z):
 position{ x, y, z },
 init_position{ x, y, z },
+direction{ dir },
 distance{0.0f},
 speed{5.0f},
 model(path, inverse_x, inverse_y, inverse_z)
@@ -23,19 +25,19 @@ model(path, inverse_x, inverse_y, inverse_z)
 	// pitch (ruch pionowy)
 	model_Matrix = glm::rotate(model_Matrix, glm::radians(cameraAngles.y), glm::vec3(1.0f, 0.0f, 0.0f));
 	
-	// model matrix is rotated so we want to move in oposite direction of axis Z
-	direction = glm::vec3(0.0f, 0.0f, -1.0f);
 	// save path
 	this->path = path;
 }
 
 // copy constructor for rocket model so we dont have to create new model each time
 // x,y,z -> new position of rocket model
+// dir -> camera direction
 // cameraAngles -> vector of camera angles for rotating model
 RocketModel::RocketModel(const RocketModel& rocketModel, 
-	float x, float y, float z, glm::vec3 cameraAngles): 
+	float x, float y, float z, glm::vec3 dir, glm::vec3 cameraAngles): 
 	position{ x, y, z },
 	init_position{ x, y, z },
+	direction{dir},
 	distance{ 0.0f },
 	speed{ 5.0f },
 	model{rocketModel.model}
@@ -50,10 +52,7 @@ RocketModel::RocketModel(const RocketModel& rocketModel,
 	model_Matrix = glm::rotate(model_Matrix, glm::radians(cameraAngles.x + 90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 	// pitch (ruch pionowy)
 	model_Matrix = glm::rotate(model_Matrix, glm::radians(cameraAngles.y), glm::vec3(1.0f, 0.0f, 0.0f));
-	
-	// model matrix is rotated so we want to move in oposite direction of axis Z
-	direction = glm::vec3(0.0f, 0.0f, -1.0f);
-	
+
 	// copy path
 	this->path = path;
 }
@@ -71,10 +70,11 @@ void RocketModel::move(double deltaTime)
 {
 	float speed_factor = speed * deltaTime;
 	//visualise position.
+	// direction from camera front vector -> to get actual position
 	position += direction * speed_factor;
 	// move model in vertex shader
-	direction = glm::vec3(0.0f, 0.0f, -1.0f);
-	model_Matrix = glm::translate(model_Matrix, direction * speed_factor);
+	// there we use glm::vec3(0,0,-1) vector instead of camera direction because we rotate model matrix!
+	model_Matrix = glm::translate(model_Matrix, glm::vec3(0.0f, 0.0f, -1.0f) * speed_factor);
 }
 
 // function for drawing rocket model

@@ -7,11 +7,11 @@ class RocketModel
 {
 public:
 	//constructor
-	RocketModel(std::string path, float x, float y, float z, glm::vec3 dir, bool inverse_x, bool inverse_y, bool inverse_z); //constructor
+	RocketModel(std::string path, float x, float y, float z, glm::vec3 dir, glm::vec3 cameraAngles, bool inverse_x, bool inverse_y, bool inverse_z); //constructor
 	//move constructor
 	RocketModel(RocketModel&& rocketModel) = delete;
 	//copy constructor
-	RocketModel(const RocketModel& rocketModel, float x, float y, float z, glm::vec3 cameraAngles);
+	RocketModel(const RocketModel& rocketModel, float x, float y, float z, glm::vec3 dir, glm::vec3 cameraAngles);
 
 	// this function returns distance covered from init position
 	float checkDistance();
