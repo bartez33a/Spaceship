@@ -23,7 +23,7 @@ m_fuelTexNo{ 2 },
 // rocket model
 m_rocket_model_shader("shaders/model/model_shader_tex.vs", "shaders/model/model_shader_tex.fs"),
 // rocket model for copying (it's far away from origin)
-rocketModel("models/rocket/rocket.obj", 9000,9000, -9000, m_spaceship.getAngles(), false, false, true),
+rocketModel("models/rocket/rocket.obj", 9000,9000, -9000, m_spaceship.getCamFront(), m_spaceship.getAngles(), false, false, true),
 //rockets - shaders, textures
 m_rocket_shader_tex{"shaders/rocket/rocket_shader_tex.vs","shaders/rocket/rocket_shader_tex.fs"},
 m_rocket_tex0 {"textures/rocket/rocket1.png", GL_TEXTURE0},
@@ -478,6 +478,19 @@ void Manager::distanceAutoDelete()
 		}
 	}
 
+	//delete rocket models
+	for (auto it = m_rocket_model_obj_list.begin(); it != m_rocket_model_obj_list.end();)
+	{
+		if ((*it).checkDistance() > 20.0f)
+		{
+			it = m_rocket_model_obj_list.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+
 	//delete meteors
 	for (auto it = m_meteors.begin(); it != m_meteors.end();)
 	{
@@ -506,6 +519,7 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 	return m_rockets.erase(it);
 }
 
+// delete rocket model from list of rocket models
 std::list<RocketModel>::iterator Manager::deleteRocketModel(std::list<RocketModel>::iterator it)
 {
 	return m_rocket_model_obj_list.erase(it); 
