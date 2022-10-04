@@ -30,6 +30,8 @@ public:
 	void setUniformfloat(std::string name, float value);
 	// set uniform int
 	void setUniformInt(std::string name, int value);
+	// set uniform float
+	void setUniformFloat(std::string name, float value);
 	// get model matrix location in shader program
 	int getModelMatrixLocation() const;
 	// get view matrix location in shader program

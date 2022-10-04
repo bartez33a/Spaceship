@@ -170,6 +170,12 @@ void Shader::setUniformInt(std::string name, int value)
 	glUniform1i(glGetUniformLocation(ID, name.c_str()), value); // manually
 }
 
+void Shader::setUniformFloat(std::string name, float value)
+{
+	use();
+	glUniform1f(glGetUniformLocation(ID, name.c_str()), value); // manually
+}
+
 // get model matrix location in shader
 int Shader::getModelMatrixLocation() const
 {

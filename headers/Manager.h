@@ -11,6 +11,7 @@
 #include "TextBox.h"
 #include "MySQL.h"
 #include "Slider.h"
+#include "Model.h"
 #include <vector>
 #include <list>
 #include <ctime>
@@ -18,6 +19,7 @@
 // hide and show console
 #include <Windows.h>
 #include <algorithm>
+#include "RocketModel.h"
 
 // game manager class
 class Manager
@@ -46,7 +48,11 @@ private:
 	void createMeteors();
 	// set number of meteors textures
 	void setMeteorsTexNo(int meteorTexNo);
+	// function for creating rocket objects
 	void createRocket();
+	//fucntion for creating rocket model objects
+	void createRocketModel();
+	//function for crating background meteors
 	void createBackground();
 	// generate fuel from destroyed meteors
 	void generateFuel(glm::vec3 position, int percentOfChance);
@@ -110,6 +116,15 @@ private:
 	
 	// shader for background meteors - without texture.
 	Shader m_background_meteors_shader;
+
+	// loaded models
+	// Shader for rocket model objects
+	Shader m_rocket_model_shader;
+	// rocket model object - template for copying (it's faster than create new model each time)
+	RocketModel rocketModel;
+	// list of rocket model objects
+	std::list <RocketModel> m_rocket_model_obj_list;
+
 
 	//Shader for rockets with texture
 	Shader m_rocket_shader_tex;

@@ -61,7 +61,13 @@ void Camera::mouseInput(float xoffset, float yoffset)
 	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
 
 	front = glm::normalize(front);
-	
+
+	/*
+	std::cout << "***************************\n";
+	std::cout << "pitch: " << pitch << '\n';
+	std::cout << "yaw: " << yaw << "\n\n";
+	*/
+
 	updateCameraMatrix();
 }
  
@@ -69,6 +75,31 @@ void Camera::mouseInput(float xoffset, float yoffset)
 glm::mat4 Camera::get_viewMatrix() const
 {
 	return view_matrix;
+}
+
+// get yaw angle
+float Camera::getYaw() const
+{
+	return yaw;
+}
+
+// get pitch angle
+float Camera::getPitch() const
+{
+	return pitch;
+}
+
+// get roll angle
+float Camera::getRoll() const
+{
+	return roll;
+}
+
+// get yaw pitch and roll angle as vec3
+// in order yaw, pitch, roll
+glm::vec3 Camera::getAngles() const
+{
+	return glm::vec3(yaw, pitch, roll);
 }
 
 // update view matrix
