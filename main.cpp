@@ -77,6 +77,9 @@ int main()
 	//enable depth testing for 3d drawing
 	glEnable(GL_DEPTH_TEST);
 
+	int noOfFrames = 0;
+	double lastTime = glfwGetTime();
+
 	//rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -85,6 +88,17 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 	
+		// Measure FPS
+		noOfFrames++;
+		// after each second
+		if (currentFrame - lastTime >= 1.0) 
+		{ 
+			// printf and reset timer
+			//std::cout << double(noOfFrames) << " FPS\n";
+			noOfFrames = 0;
+			lastTime = currentFrame;
+		}
+
 		//clear buffers
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

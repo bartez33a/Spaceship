@@ -11,7 +11,7 @@ position{ x, y, z },
 init_position{ x, y, z },
 direction{ dir },
 distance{0.0f},
-speed{5.0f},
+speed{2.0f},
 model(path, inverse_x, inverse_y, inverse_z)
 {
 	// initialize model matrix
@@ -39,7 +39,7 @@ RocketModel::RocketModel(const RocketModel& rocketModel,
 	init_position{ x, y, z },
 	direction{dir},
 	distance{ 0.0f },
-	speed{ 5.0f },
+	speed{ rocketModel.speed },
 	model{rocketModel.model}
 {
 	// model matrix
@@ -72,6 +72,7 @@ void RocketModel::move(double deltaTime)
 	//visualise position.
 	// direction from camera front vector -> to get actual position
 	position += direction * speed_factor;
+
 	// move model in vertex shader
 	// there we use glm::vec3(0,0,-1) vector instead of camera direction because we rotate model matrix!
 	model_Matrix = glm::translate(model_Matrix, glm::vec3(0.0f, 0.0f, -1.0f) * speed_factor);
@@ -83,7 +84,7 @@ void RocketModel::Draw(Shader& shader, float scale)
 	// we have to update model matrix in vertex shader
 	shader.setUniformMatrix(shader.getModelMatrixLocation(), model_Matrix);
 	// then we call Draw function of model
-	model.Draw(shader, scale);
+	model.Draw(shader, scale, model_Matrix);
 }
 
 // this function returns bounding box from model

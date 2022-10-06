@@ -32,7 +32,7 @@ Model::Model(const Model& model):
 }
 
 // function for drawing model -> it draws all meshes and find bounding box of object
-void Model::Draw(Shader& shader, float scale)
+void Model::Draw(Shader& shader, float scale, glm::mat4& modelMatrix)
 {
 	// if scale has changed
 	if (m_scale != scale)
@@ -43,18 +43,15 @@ void Model::Draw(Shader& shader, float scale)
 			for (unsigned int j = 0; j < meshes[i].vertices.size(); j++)
 			{
 				model_mesh::Vertex vertex = meshes[i].vertices[j];
-				this->findBoundingBox(vertex.Position, scale);
+				this->findBoundingBox(vertex.Position, m_scale, modelMatrix);
 			}	
 		}
 		glm::mat3x2 bb = this->getBoundingBox();
-		
-		std::cout << "MIN: " << bb[0].x << ", " << bb[1].x << ", " << bb[2].x << '\n' <<
-			"Max: " << bb[0].y << ", " << bb[1].y << ", " << bb[2].y << "\n\n";
 	}
 	// draw each mesh
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
-		shader.setUniformFloat("scale", scale);
+		shader.setUniformFloat("scale", m_scale);
 		meshes[i].Draw(shader);
 	}
 }
@@ -70,13 +67,13 @@ glm::mat3x2 Model::getBoundingBox() const
 	glm::mat3x2 Box;
 	
 	// min x,y,z
-	Box[0].x = m_boundingBox.x_min;
-	Box[1].x = m_boundingBox.y_min;
-	Box[2].x = m_boundingBox.z_min;
+	Box[0].x = m_boundingBox.min.x;
+	Box[1].x = m_boundingBox.min.y;
+	Box[2].x = m_boundingBox.min.z;
 	// max x,y,z
-	Box[0].y = m_boundingBox.x_max;
-	Box[1].y = m_boundingBox.y_max;
-	Box[2].y = m_boundingBox.z_max;
+	Box[0].y = m_boundingBox.max.x;
+	Box[1].y = m_boundingBox.max.y;
+	Box[2].y = m_boundingBox.max.z;
 	return Box;
 }
 
@@ -275,39 +272,52 @@ std::vector<model_mesh::Texture> Model::loadMaterialTextures(aiMaterial* mat, ai
 }
 
 // fucntion for finding bounding box
-void Model::findBoundingBox(glm::vec3 vertex, float scale)
+// vertex is single vertex of object
+// scale is scale factor of object
+// modelMatrix is modelMatrix - e.g. if we rotate object -> bounding box should be bigger
+void Model::findBoundingBox(glm::vec3 vertex, float scale, glm::mat4& modelMatrix)
 {
-	vertex = vertex * scale;
+	glm::vec4 vertex4 = glm::vec4(1.0f);
+	vertex4.x = vertex.x;
+	vertex4.y = vertex.y;
+	vertex4.z = vertex.z;
+
+	vertex = modelMatrix * vertex4 * scale;
 	// x min
-	if (vertex.x < m_boundingBox.x_min)
+	if (vertex.x < m_boundingBox.min.x)
 	{
-		m_boundingBox.x_min = vertex.x;
+		m_boundingBox.min.x = vertex.x;
 	}
 	// y min
-	if (vertex.y < m_boundingBox.y_min)
+	if (vertex.y < m_boundingBox.min.y)
 	{
-		m_boundingBox.y_min = vertex.y;
+		m_boundingBox.min.y = vertex.y;
 	}
 	// z min
-	if (vertex.z < m_boundingBox.z_min)
+	if (vertex.z < m_boundingBox.min.z)
 	{
-		m_boundingBox.z_min = vertex.z;
+		m_boundingBox.min.z = vertex.z;
 	}
 	// x max
-	if (vertex.x > m_boundingBox.x_min)
+	if (vertex.x > m_boundingBox.max.x)
 	{
-		m_boundingBox.x_max = vertex.x;
+		m_boundingBox.max.x = vertex.x;
 	}
 	// y max
-	if (vertex.y > m_boundingBox.y_min)
+	if (vertex.y > m_boundingBox.max.y)
 	{
-		m_boundingBox.y_max = vertex.y;
+		m_boundingBox.max.y = vertex.y;
 	}
 	// z max
-	if (vertex.z > m_boundingBox.z_min)
+	if (vertex.z > m_boundingBox.max.z)
 	{
-		m_boundingBox.z_max = vertex.z;
+		m_boundingBox.max.z = vertex.z;
 	}
+}
+
+float Model::getScale() const
+{
+	return m_scale;
 }
 
 // function for loading texture from file path in directory

@@ -23,7 +23,9 @@ m_fuelTexNo{ 2 },
 // rocket model
 m_rocket_model_shader("shaders/model/model_shader_tex.vs", "shaders/model/model_shader_tex.fs"),
 // rocket model for copying (it's far away from origin)
-rocketModel("models/rocket/rocket.obj", 9000,9000, -9000, m_spaceship.getCamFront(), m_spaceship.getAngles(), false, false, true),
+//rocketModel("models/rocket/rocket.obj", 9000,9000, -9000, m_spaceship.getCamFront(), m_spaceship.getAngles(), false, false, true),
+rocketModel("models/backpack/backpack2.obj", 9000, 9000, -9000, m_spaceship.getCamFront(), m_spaceship.getAngles(), false, false, true),
+
 //rockets - shaders, textures
 m_rocket_shader_tex{"shaders/rocket/rocket_shader_tex.vs","shaders/rocket/rocket_shader_tex.fs"},
 m_rocket_tex0 {"textures/rocket/rocket1.png", GL_TEXTURE0},
@@ -292,13 +294,14 @@ bool Manager::checkCollisionRocketModelSphere(const RocketModel& rocketModel, co
 
 	//std::cout << "Position: " << rocketModelPos.x << ", " << rocketModelPos.y << ", " << rocketModelPos.z << "\n\n";
 	//bounding box
+	//bottom left front corner
 	float x1 = boundingBox[0].x + rocketModelPos.x;
 	float y1 = boundingBox[1].x + rocketModelPos.y;
 	float z1 = boundingBox[2].x + rocketModelPos.z;
 
-	float w1 = abs(boundingBox[0].y - boundingBox[0].x);
-	float h1 = abs(boundingBox[1].y - boundingBox[1].x);
-	float l1 = abs(boundingBox[2].y - boundingBox[2].x);
+	float w1 = (boundingBox[0].y - boundingBox[0].x);
+	float h1 = (boundingBox[1].y - boundingBox[1].x);
+	float l1 = (boundingBox[2].y - boundingBox[2].x);
 
 	//extract position of Sphere
 	glm::vec3 s1_pos = s1.getPosition();
@@ -442,13 +445,11 @@ void Manager::createRocketModel()
 	if (m_rocketsNo > 0)
 	{
 		// if ammo is loaded
-		if (m_loadingAmmoTimer >= m_loadingAmmoTime)
+		if (1)//)m_loadingAmmoTimer >= m_loadingAmmoTime)
 		{
 			// create rockets
 			//m_rockets.emplace_back(&m_rocket_shader_tex, camPos.x, camPos.y, camPos.z, 1, 0, camFront);
 			m_rocket_model_obj_list.emplace_back(rocketModel, camPos.x, camPos.y, camPos.z, m_spaceship.getCamFront(), m_spaceship.getAngles());
-			std::cout << "added rocket model object at (" << camPos.x << ", " << camPos.y << ", " <<
-				camPos.z << ")\n";
 			// decrease ammo
 			m_rocketsNo--;
 			// reset loading timer
@@ -548,15 +549,28 @@ void Manager::drawAndMoveAllObjects(double deltaTime)
 	m_meteor_shader_tex2.bindTexture();
 	for (auto &m : m_meteors)
 	{
-		m.move(deltaTime);
+		//m.move(deltaTime);
 		m.draw_tex();
 	}
 
 	// move and draw rocket model objects
 	for (auto &rm : m_rocket_model_obj_list) 
 	{
+		////visualization of bounding box
+		//glm::vec3 rocketModelPos = rm.getPosition();
+		//glm::mat3x2 boundingBox = rm.getBoundingBox();
+
+		//float x1 = boundingBox[0].x + rocketModelPos.x;
+		//float y1 = boundingBox[1].x + rocketModelPos.y;
+		//float z1 = boundingBox[2].x + rocketModelPos.z;
+		//float w1 = (boundingBox[0].y - boundingBox[0].x);
+		//float h1 = (boundingBox[1].y - boundingBox[1].x);
+		//float l1 = (boundingBox[2].y - boundingBox[2].x);		
+		//Cube c(&m_background_meteors_shader, x1, y1, z1, w1, h1, l1, 1.0f, 0.0f, 0.0f);
+		//c.draw();
+
 		rm.move(deltaTime);
-		rm.Draw(m_rocket_model_shader, scalee);
+		rm.Draw(m_rocket_model_shader, 1.0f);//scalee);
 	}
 
 	//draw rockets
@@ -748,8 +762,8 @@ void Manager::checkAllCollisions()
 			// if rocket and meteor have collision
 			if (checkCollisionRocketModelSphere(*it, *it2))
 			{
-				std::cout << "ROCKET AND METEOR COLLISION\n";
 				glm::vec3 pos = (*it).getPosition();
+				
 				generateFuel(pos, 30);
 				it = deleteRocketModel(it); //returns iterator to next element
 				it2 = deleteMeteor(it2);
@@ -1279,6 +1293,7 @@ void Manager::processInput(GLFWwindow * window)
 	{
 		if (!key_o_pushed)
 		{
+			//createRocket();
 			move_rocket = true;
 		}
 		key_o_pushed = true;

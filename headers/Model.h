@@ -25,9 +25,12 @@ public:
 	//copy constructor
 	Model(const Model& model);
 	// function for drawing model
-	void Draw(Shader& shader, float scale);
+	void Draw(Shader& shader, float scale, glm::mat4& modelMatrix);
 	// function which returns bounding box of object
 	glm::mat3x2 getBoundingBox() const;
+	//get model scale
+	float getScale() const;
+
 private:
 	//forward declararion of struct
 	struct boundingBox;
@@ -47,17 +50,14 @@ private:
 	// vector for storing loaded textures
 	std::vector<model_mesh::Texture> textures_loaded;
 	// function for finding bounding box of object
-	void findBoundingBox(glm::vec3 vertex, float scale);
+	void findBoundingBox(glm::vec3 vertex, float scale, glm::mat4 &modelMatrix);
 	// scale of model
 	float m_scale;
+
 	// struct for bounding box
 	struct boundingBox {
-		float x_min;
-		float x_max;
-		float y_min;
-		float y_max;
-		float z_min;
-		float z_max;
+		glm::vec3 min;
+		glm::vec3 max;
 	};
 	//bounding box object
 	boundingBox m_boundingBox;
