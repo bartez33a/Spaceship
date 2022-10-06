@@ -1,6 +1,10 @@
 #include "..\headers\Manager.h"
 
 unsigned int Manager::m_meteors_ctr = 0;
+bool move_rocket = false;
+
+//DELETE
+float scalee = 0.001f;
 
 // constructor for manager
 Manager::Manager(GLFWwindow* window) : m_base_shader{ "shaders/base/base_shader_tex.vs", "shaders/base/base_shader_tex.fs" },
@@ -16,6 +20,12 @@ m_fuel_shader{ "shaders/fuel/fuel_shader.vs", "shaders/fuel/fuel_shader.fs" },
 m_fuel_shader_tex0{ "textures/fuel/fuel.png", GL_TEXTURE0 },
 m_fuel_shader_tex1{ "textures/fuel/fuel2.jpg", GL_TEXTURE1 },
 m_fuelTexNo{ 2 },
+// rocket model
+m_rocket_model_shader("shaders/model/model_shader_tex.vs", "shaders/model/model_shader_tex.fs"),
+// rocket model for copying (it's far away from origin)
+//rocketModel("models/rocket/rocket.obj", 9000,9000, -9000, m_spaceship.getCamFront(), m_spaceship.getAngles(), false, false, true),
+rocketModel("models/backpack/backpack2.obj", 9000, 9000, -9000, m_spaceship.getCamFront(), m_spaceship.getAngles(), false, false, true),
+
 //rockets - shaders, textures
 m_rocket_shader_tex{"shaders/rocket/rocket_shader_tex.vs","shaders/rocket/rocket_shader_tex.fs"},
 m_rocket_tex0 {"textures/rocket/rocket1.png", GL_TEXTURE0},
@@ -71,6 +81,15 @@ m_mySQL{ "localhost", "root", "", "spaceship"}
 	glUniform1i(glGetUniformLocation(m_meteor_shader.get_ID(), "texture2"), 2); // manually
 	// set number of meteors textures
 	setMeteorsTexNo(3);
+
+	//models
+	glm::mat4 meteor_model_matrix = glm::mat4(1.0f);
+	meteor_model_matrix = glm::translate(meteor_model_matrix, glm::vec3(0.0f, 0.0f, -15.0f));
+	//rotete rocket
+	//meteor_model_matrix = glm::rotateZ(meteor_model_matrix, glm::radians(180.0f));
+	meteor_model_matrix = glm::rotate(meteor_model_matrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	m_rocket_model_shader.updateMatrices(mm, m_spaceship.get_viewMatrix(), projection);
+	
 
 	//rockets
 	//update meteors matrices
@@ -268,6 +287,47 @@ bool Manager::checkCollisionCubePoint(const Cube & c1, const glm::vec3 point) co
 	}
 }
 
+bool Manager::checkCollisionRocketModelSphere(const RocketModel& rocketModel, const Sphere& s1) const
+{
+	glm::mat3x2 boundingBox = rocketModel.getBoundingBox();
+	glm::vec3 rocketModelPos = rocketModel.getPosition();
+
+	//std::cout << "Position: " << rocketModelPos.x << ", " << rocketModelPos.y << ", " << rocketModelPos.z << "\n\n";
+	//bounding box
+	//bottom left front corner
+	float x1 = boundingBox[0].x + rocketModelPos.x;
+	float y1 = boundingBox[1].x + rocketModelPos.y;
+	float z1 = boundingBox[2].x + rocketModelPos.z;
+
+	float w1 = (boundingBox[0].y - boundingBox[0].x);
+	float h1 = (boundingBox[1].y - boundingBox[1].x);
+	float l1 = (boundingBox[2].y - boundingBox[2].x);
+
+	//extract position of Sphere
+	glm::vec3 s1_pos = s1.getPosition();
+	float x2 = s1_pos.x;
+	float y2 = s1_pos.y;
+	float z2 = s1_pos.z;
+
+	float r2 = s1.getRadius();
+
+
+	if (
+		(((x2 + r2) >= x1) && ((x2 - r2) <= (x1 + w1)))
+		&&
+		(((y2 + r2) >= y1) && ((y2 - r2) <= (y1 + h1)))
+		&&
+		(((z2 + r2) >= z1) && ((z2 - r2) <= (z1 + l1)))
+		)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 // create meteor in valid position
 // meteor cannot be generate in position in which is another meteor!
 // TODO! meteor cannot be generete in spaceship's position!
@@ -375,6 +435,33 @@ void Manager::createRocket()
 	}
 } // create Rocket
 
+// function for creating rocket model objects
+void Manager::createRocketModel()
+{
+	glm::vec3 camPos = m_spaceship.getCamPos();
+	glm::vec3 camFront = m_spaceship.getCamFront();
+
+	// only if spaceship has enough ammo
+	if (m_rocketsNo > 0)
+	{
+		// if ammo is loaded
+		if (1)//)m_loadingAmmoTimer >= m_loadingAmmoTime)
+		{
+			// create rockets
+			//m_rockets.emplace_back(&m_rocket_shader_tex, camPos.x, camPos.y, camPos.z, 1, 0, camFront);
+			m_rocket_model_obj_list.emplace_back(rocketModel, camPos.x, camPos.y, camPos.z, m_spaceship.getCamFront(), m_spaceship.getAngles());
+			// decrease ammo
+			m_rocketsNo--;
+			// reset loading timer
+			m_loadingAmmoTimer = 0.0;
+		}
+	}
+	else
+	{
+		//std::cout << "No more ammo!\n";
+	}
+} // createRocketModel()
+
 
 // delete objects when covered distance is too long
 void Manager::distanceAutoDelete()
@@ -385,6 +472,19 @@ void Manager::distanceAutoDelete()
 		if ((*it).checkDistance() > 20.0f)
 		{
 			it = m_rockets.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+
+	//delete rocket models
+	for (auto it = m_rocket_model_obj_list.begin(); it != m_rocket_model_obj_list.end();)
+	{
+		if ((*it).checkDistance() > 20.0f)
+		{
+			it = m_rocket_model_obj_list.erase(it);
 		}
 		else
 		{
@@ -420,6 +520,12 @@ std::list<Rocket>::iterator Manager::deleteRocket(std::list<Rocket>::iterator it
 	return m_rockets.erase(it);
 }
 
+// delete rocket model from list of rocket models
+std::list<RocketModel>::iterator Manager::deleteRocketModel(std::list<RocketModel>::iterator it)
+{
+	return m_rocket_model_obj_list.erase(it); 
+}
+
 // function for drawing all objects. this function also moves all objects
 void Manager::drawAndMoveAllObjects(double deltaTime)
 {
@@ -443,8 +549,28 @@ void Manager::drawAndMoveAllObjects(double deltaTime)
 	m_meteor_shader_tex2.bindTexture();
 	for (auto &m : m_meteors)
 	{
-		m.move(deltaTime);
+		//m.move(deltaTime);
 		m.draw_tex();
+	}
+
+	// move and draw rocket model objects
+	for (auto &rm : m_rocket_model_obj_list) 
+	{
+		////visualization of bounding box
+		//glm::vec3 rocketModelPos = rm.getPosition();
+		//glm::mat3x2 boundingBox = rm.getBoundingBox();
+
+		//float x1 = boundingBox[0].x + rocketModelPos.x;
+		//float y1 = boundingBox[1].x + rocketModelPos.y;
+		//float z1 = boundingBox[2].x + rocketModelPos.z;
+		//float w1 = (boundingBox[0].y - boundingBox[0].x);
+		//float h1 = (boundingBox[1].y - boundingBox[1].x);
+		//float l1 = (boundingBox[2].y - boundingBox[2].x);		
+		//Cube c(&m_background_meteors_shader, x1, y1, z1, w1, h1, l1, 1.0f, 0.0f, 0.0f);
+		//c.draw();
+
+		rm.move(deltaTime);
+		rm.Draw(m_rocket_model_shader, 1.0f);//scalee);
 	}
 
 	//draw rockets
@@ -624,6 +750,41 @@ void Manager::checkAllCollisions()
 		}
 	} //for loop -> rockets
 
+
+	//check collision rocket(as model) <--> meteor
+		//for each rocket
+	for (std::list<RocketModel>::iterator it = m_rocket_model_obj_list.begin(); it != m_rocket_model_obj_list.end();)
+	{
+		bool coll = false; //check collision
+		//for each meteor
+		for (std::list<Meteor>::iterator it2 = m_meteors.begin(); it2 != m_meteors.end();)
+		{
+			// if rocket and meteor have collision
+			if (checkCollisionRocketModelSphere(*it, *it2))
+			{
+				glm::vec3 pos = (*it).getPosition();
+				
+				generateFuel(pos, 30);
+				it = deleteRocketModel(it); //returns iterator to next element
+				it2 = deleteMeteor(it2);
+
+				++m_score;
+				//if you shoot meteor -> you get more ammo
+				m_rocketsNo += 2;
+				coll = true;
+				break;
+			}
+			else
+			{
+				it2++;
+			}
+		} //for loop -> meteors
+		if (!coll)
+		{
+			it++;
+		}
+	} //for loop -> rockets
+
 	//check collision of meteor and base
 	for (std::list<Meteor>::iterator it = m_meteors.begin(); it != m_meteors.end(); it++)
 	{
@@ -739,6 +900,7 @@ void Manager::updateShadersMatrices()
 	m_meteor_shader.setUniformMatrix(m_meteor_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 	m_rocket_shader_tex.setUniformMatrix(m_rocket_shader_tex.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 	m_fuel_shader.setUniformMatrix(m_fuel_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
+	m_rocket_model_shader.setUniformMatrix(m_rocket_model_shader.getViewMatrixLocation(), m_spaceship.get_viewMatrix());
 }
 
 // function for checking if our score is in top 10
@@ -1018,6 +1180,9 @@ void Manager::processInput(GLFWwindow * window)
 	static bool space_pushed = false;
 	static bool key_p_pushed = false;
 	static bool key_m_pushed = false;
+	static bool key_o_pushed = false;
+	static bool key_kp_add_pushed = false;
+	static bool key_kp_subtract_pushed = false;
 
 	//
 	//	** KEY ESC	**
@@ -1034,7 +1199,8 @@ void Manager::processInput(GLFWwindow * window)
 		{
 			if (!space_pushed) //positive edge
 			{
-				createRocket();
+				//createRocket();
+				createRocketModel();
 			}
 			space_pushed = true;
 		}
@@ -1045,8 +1211,7 @@ void Manager::processInput(GLFWwindow * window)
 	}
 
 	//
-	//	** KEY P	**
-	
+	//	** KEY P	**	
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
 		{
 			if (!key_p_pushed)
@@ -1093,6 +1258,53 @@ void Manager::processInput(GLFWwindow * window)
 	{
 		key_m_pushed = false;
 	}
+
+	//	** KEY KEYPAD ADD	**
+	if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS)
+	{
+		//if raise edge on key keypad add
+		if (!key_kp_add_pushed)
+		{
+			scalee *= 2.0f;
+		}
+		key_kp_add_pushed = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_RELEASE)
+	{
+		key_kp_add_pushed = false;
+	}
+	//	** KEY KEYPAD SUBSTRACT	**
+	if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
+	{
+		//if raise edge on key keypad subtract
+		if (!key_kp_subtract_pushed)
+		{
+			scalee /= 2.0f;
+		}
+		key_kp_subtract_pushed = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_RELEASE)
+	{
+		key_kp_subtract_pushed = false;
+	}
+
+	//	** KEY O	**	
+	if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+	{
+		if (!key_o_pushed)
+		{
+			//createRocket();
+			move_rocket = true;
+		}
+		key_o_pushed = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_O) == GLFW_RELEASE)
+	{
+		key_o_pushed = false;
+		move_rocket = false;
+	}
+	//
+
 }
 
 // function which creates fuel objects (from destroyed meteor)

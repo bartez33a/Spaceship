@@ -11,6 +11,7 @@
 #include "TextBox.h"
 #include "MySQL.h"
 #include "Slider.h"
+#include "Model.h"
 #include <vector>
 #include <list>
 #include <ctime>
@@ -18,6 +19,7 @@
 // hide and show console
 #include <Windows.h>
 #include <algorithm>
+#include "RocketModel.h"
 
 // game manager class
 class Manager
@@ -42,11 +44,16 @@ private:
 	bool checkCollisionCubeSphere(const Cube &c1, const Sphere &s1) const;
 	bool checkCollisionSphere(const Sphere &s1, const Sphere& s2) const;
 	bool checkCollisionCubePoint(const Cube &c1, const glm::vec3 point) const;
+	bool checkCollisionRocketModelSphere(const RocketModel& rocketModel, const Sphere& s1) const;
 	/// create object functions
 	void createMeteors();
 	// set number of meteors textures
 	void setMeteorsTexNo(int meteorTexNo);
+	// function for creating rocket objects
 	void createRocket();
+	//fucntion for creating rocket model objects
+	void createRocketModel();
+	//function for crating background meteors
 	void createBackground();
 	// generate fuel from destroyed meteors
 	void generateFuel(glm::vec3 position, int percentOfChance);
@@ -56,7 +63,10 @@ private:
 	void distanceAutoDelete();
 	//delete meteor function
 	std::list<Meteor>::iterator deleteMeteor(std::list<Meteor>::iterator it);
+	//delete Rocket function
 	std::list<Rocket>::iterator deleteRocket(std::list<Rocket>::iterator it);
+	//delete Rocket as model function
+	std::list<RocketModel>::iterator deleteRocketModel(std::list<RocketModel>::iterator it);
 	//draw and moveall objects
 	void drawAndMoveAllObjects(double deltaTime);
 	//only draw all objects
@@ -110,6 +120,15 @@ private:
 	
 	// shader for background meteors - without texture.
 	Shader m_background_meteors_shader;
+
+	// loaded models
+	// Shader for rocket model objects
+	Shader m_rocket_model_shader;
+	// rocket model object - template for copying (it's faster than create new model each time)
+	RocketModel rocketModel;
+	// list of rocket model objects
+	std::list <RocketModel> m_rocket_model_obj_list;
+
 
 	//Shader for rockets with texture
 	Shader m_rocket_shader_tex;

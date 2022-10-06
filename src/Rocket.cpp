@@ -54,7 +54,7 @@ void Rocket::move(double deltaTime)
 	float speed_factor = speed * deltaTime;
 	//visualise position.
 	position += direction*speed_factor;
-
+	//move object in vertex shader
 	modelMatrix = glm::translate(modelMatrix, direction*speed_factor);
 }
 
